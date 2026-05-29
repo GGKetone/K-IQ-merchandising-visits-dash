@@ -159,6 +159,9 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .finding-item{font-size:.8rem;color:var(--ink-soft);padding:8px 0;border-bottom:1px solid rgba(207,138,138,.15);font-weight:500;line-height:1.5}
 .finding-item:last-child{border-bottom:none}
 .finding-loc{font-weight:800;color:var(--ink)}
+.photo-strip{display:flex;gap:8px;width:100%;margin-top:12px;flex-wrap:wrap}
+.strip-thumb{width:130px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);transition:transform .2s}
+.strip-thumb:hover{transform:scale(1.04)}
 .camp-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
 .camp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:22px}
 .camp-rcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
@@ -346,7 +349,8 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
     <div id="adv-hero"></div>
     <div class="sec-hd"><div><div class="sec-title">Visits by Retailer</div><div class="sec-sub">Tap a chain for store-level detail</div></div></div>
     <div class="card" style="margin-bottom:22px"><div class="bar-list" id="adv-retailers"></div></div>
-    <div class="sec-hd"><div><div class="sec-title">Coverage by State</div></div></div>
+    <div class="sec-hd"><div><div class="sec-title">Coverage by State</div><div class="sec-sub">Tap a state to see its store visits</div></div></div>
+    <div class="card" style="margin-bottom:16px;padding:16px"><div id="adv-map" style="width:100%;min-height:340px"></div></div>
     <div class="card"><div class="bar-list" id="adv-states"></div></div>
   </div>
 
@@ -368,6 +372,8 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 
 <div class="modal-bg" id="lock-modal" style="display:none"><div class="modal"><div class="modal-ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="10" width="14" height="9.5" rx="2" stroke="#fff" stroke-width="1.7"/><path d="M6.5 10V6.5a4.5 4.5 0 019 0V10" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="modal-title">Admin Access</div><div class="modal-sub">Enter your password to manage dashboard settings.</div><input class="modal-input" type="password" id="lock-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkLock()"/><div class="modal-err" id="lock-err">Incorrect password.</div><div class="modal-btns"><button class="btn btn-ghost" onclick="closeLock()">Cancel</button><button class="btn btn-accent" onclick="checkLock()">Unlock</button></div></div></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
 let D={int:[],sk:[],adv:[],sum:[]};
 let cfgNavEl=null;const PASS='123456';let unlocked=false;
@@ -416,6 +422,7 @@ function fAdv(){return D.adv.filter(r=>inRange(r['Visit Date']||r['Recap Date'])
 function city(r){const s=r['Source Email Subject']||r['Subject']||'';const m=s.match(/Circle K @ (.+?) task/i);return m?m[1].trim():(r['Address']||'').split(',')[1]||'Unknown';}
 function driveThumb(url){if(!url)return'';const m=url.match(/[-\w]{25,}/);return m?`https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`:'';}
 function driveLink(row){for(const v of Object.values(row))if((v||'').includes('drive.google.com'))return v;return'';}
+function advPhotos(r){const raw=r['Photos']||'';if(!raw)return'';const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);if(!urls.length)return'';return `<div class="photo-strip">`+urls.map(u=>`<a href="${u.replace('/thumbnail?id=','/file/d/').replace('&sz=w600','/view').replace('https://drive.google.com/file/d/','https://drive.google.com/file/d/')}" target="_blank" onclick="event.stopPropagation()"><img class="strip-thumb" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`;}
 function posTypes(r){const raw=((r['Point of Sale Placed']||'')+' '+(r['Whether you brought in any point-of-sale materials']||'')).toLowerCase();const types=[];if(raw.includes('wobbler'))types.push('Wobblers');if(raw.includes('sample'))types.push('Samples');if(raw.includes('counter')||raw.includes('rack'))types.push('Counter Rack');if(raw.includes('cling')||raw.includes('window'))types.push('Window Cling');return types;}
 function fmtDate(s,y='numeric'){const d=new Date(s);return isNaN(d)?'—':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:y});}
 function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
@@ -560,9 +567,52 @@ function renderAdvantage(){
   document.getElementById('adv-retailers').innerHTML=cs.length?cs.map(([c,n])=>`<div class="bar-row" onclick="openAdvChain('${c.replace(/'/g,"")}')"><div class="bar-name">${c}</div><div class="bar-track"><div class="bar-fill" style="width:${n/cmax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No visits in this range</div>';
   // states
   const st={};A.forEach(r=>{const s=r['State']||'';if(s)st[s]=(st[s]||0)+1});const ss=Object.entries(st).sort((a,b)=>b[1]-a[1]);const smax=ss[0]?.[1]||1;
-  document.getElementById('adv-states').innerHTML=ss.length?ss.map(([s,n])=>`<div class="bar-row" style="cursor:default"><div class="bar-name">${s}</div><div class="bar-track"><div class="bar-fill" style="width:${n/smax*100}%"></div></div><div class="bar-cnt">${n}</div></div>`).join(''):'<div class="empty">No data</div>';
+  document.getElementById('adv-states').innerHTML=ss.length?ss.map(([s,n])=>`<div class="bar-row" onclick="openAdvState('${s}')"><div class="bar-name">${STATE_NAMES[s]||s}</div><div class="bar-track"><div class="bar-fill" style="width:${n/smax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No data</div>';
+  renderStateMap(st);
 }
-function openAdvRecap(recap){
+const STATE_NAMES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+const NAME_TO_ABBR={};Object.entries(STATE_NAMES).forEach(([a,n])=>NAME_TO_ABBR[n]=a);
+let _usTopo=null;
+function renderStateMap(stateCounts){
+  const host=document.getElementById('adv-map');
+  if(!host)return;
+  if(typeof d3==='undefined'||typeof topojson==='undefined'){host.innerHTML='<div class="empty">Map unavailable — see the list below.</div>';return;}
+  const draw=()=>{
+    const counts=stateCounts||{};
+    const max=Math.max(1,...Object.values(counts));
+    const W=host.clientWidth||640,H=Math.max(340,W*0.58);
+    host.innerHTML='';
+    const svg=d3.select(host).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
+    const states=topojson.feature(_usTopo,_usTopo.objects.states).features;
+    const proj=d3.geoAlbersUsa().fitSize([W,H],{type:'FeatureCollection',features:states});
+    const path=d3.geoPath(proj);
+    const col=d3.scaleLinear().domain([0,max]).range(['#eef0f5','#c89766']);
+    const tip=d3.select(host).append('div').style('position','absolute').style('pointer-events','none').style('background','#1e293b').style('color','#fff').style('padding','6px 10px').style('border-radius','8px').style('font','600 12px Hanken Grotesk,sans-serif').style('opacity',0).style('z-index',5).style('white-space','nowrap');
+    host.style.position='relative';
+    svg.selectAll('path').data(states).join('path').attr('d',path)
+      .attr('fill',d=>{const ab=NAME_TO_ABBR[d.properties.name];const c=counts[ab]||0;return c>0?col(c):'#f4f6fa';})
+      .attr('stroke','#fff').attr('stroke-width',1)
+      .style('cursor',d=>{const ab=NAME_TO_ABBR[d.properties.name];return counts[ab]?'pointer':'default';})
+      .on('mousemove',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];const c=counts[ab]||0;const r=host.getBoundingClientRect();tip.style('opacity',1).html(`${d.properties.name}: <b>${c}</b> visit${c!==1?'s':''}`).style('left',(e.clientX-r.left+12)+'px').style('top',(e.clientY-r.top-8)+'px');})
+      .on('mouseleave',()=>tip.style('opacity',0))
+      .on('click',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];if(counts[ab])openAdvState(ab);});
+  };
+  if(_usTopo){draw();return;}
+  fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r=>r.json()).then(j=>{_usTopo=j;draw();}).catch(()=>{host.innerHTML='<div class="empty">Map unavailable — see the list below.</div>';});
+}
+function openAdvState(ab){
+  const rows=fAdv().filter(r=>r['State']===ab).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
+  const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
+  const cities=new Set(rows.map(r=>r['City']).filter(Boolean));
+  document.getElementById('adv-detail').innerHTML=`
+    <div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">Advantage · ${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div>
+    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
+    <div class="card"><div class="loc-list">`+
+    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}</div></div>${photos}</div>`;}).join('')+
+    `</div></div>`;
+  nav('advantage-detail',null);
+}
+
   const rows=D.adv.filter(r=>r['Recap Date']===recap).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
   const sum=D.sum.find(s=>s['Recap Date']===recap)||{};
   const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);
@@ -571,7 +621,7 @@ function openAdvRecap(recap){
     <div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
     <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>
     <div class="card"><div class="loc-list">`+
-    rows.map(r=>{const lnk=r['Drive File Link'];return `<div class="loc-row" style="cursor:default"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}</div></div>${lnk?`<a href="${lnk}" target="_blank" class="chip" onclick="event.stopPropagation()">↗ Report</a>`:''}</div>`;}).join('')+
+    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}</div></div>${photos}</div>`;}).join('')+
     `</div></div>`;
   nav('advantage-detail',null);
 }
@@ -582,7 +632,7 @@ function openAdvChain(chain){
     <div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">Advantage · ${states.size} state${states.size!==1?'s':''}</div>
     <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
     <div class="card"><div class="loc-list">`+
-    rows.map(r=>{const lnk=r['Drive File Link'];return `<div class="loc-row" style="cursor:default"><div class="loc-main"><div class="loc-name">Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}</div><div class="loc-meta">Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}</div></div>${lnk?`<a href="${lnk}" target="_blank" class="chip" onclick="event.stopPropagation()">↗ Report</a>`:''}</div>`;}).join('')+
+    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}</div><div class="loc-meta">Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}</div></div>${photos}</div>`;}).join('')+
     `</div></div>`;
   nav('advantage-detail',null);
 }
