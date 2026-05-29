@@ -612,7 +612,7 @@ function openAdvState(ab){
     `</div></div>`;
   nav('advantage-detail',null);
 }
-
+function openAdvRecap(recap){
   const rows=D.adv.filter(r=>r['Recap Date']===recap).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
   const sum=D.sum.find(s=>s['Recap Date']===recap)||{};
   const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);
