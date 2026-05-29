@@ -53,8 +53,16 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .btn-ghost:hover{border-color:var(--navy);background:var(--bg-2)}
 .btn-accent{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(91,141,239,.28)}
 .btn-accent:hover{transform:translateY(-1px)}
-.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;color:var(--accent);padding:6px 0}
-.back-btn:hover{gap:9px}
+.back-btn{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--accent);padding:9px 16px;margin-bottom:16px;border:1.5px solid var(--accent-line);border-radius:var(--r-pill);background:var(--accent-soft);transition:all .18s}
+.back-btn:hover{gap:10px;background:var(--accent);color:#fff;border-color:var(--accent)}
+.pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap}
+.pg-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:var(--r-pill);border:1.5px solid var(--border);color:var(--ink-soft);transition:all .15s}
+.pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed}
+.pg-num{font-size:.78rem;font-weight:700;width:34px;height:34px;border-radius:9px;color:var(--muted);transition:all .15s}
+.pg-num:hover{background:var(--bg-2);color:var(--ink)}
+.pg-num.active{background:var(--accent);color:#fff}
+.pg-dots{color:var(--subtle);font-weight:700;padding:0 2px}
 .page{display:none;padding:28px 32px 48px}
 .page.active{display:block;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -169,8 +177,8 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .store-block-hd{margin-bottom:14px}
 .store-block-name{font-size:1rem;font-weight:800;letter-spacing:-.01em}
 .store-block-meta{font-size:.76rem;color:var(--muted);font-weight:500;margin-top:3px}
-.store-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.store-photo{width:100%;height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--border);background:var(--bg-2);transition:transform .2s;cursor:pointer}
+.store-photos{display:flex;gap:12px;flex-wrap:wrap}
+.store-photo{width:260px;max-width:100%;height:200px;object-fit:contain;border-radius:12px;border:1px solid var(--border);background:var(--bg-3);transition:transform .2s;cursor:pointer}
 .store-photo:hover{transform:scale(1.01)}
 .store-nophoto{font-size:.78rem;color:var(--subtle);font-weight:500;padding:8px 0}
 .camp-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
@@ -433,6 +441,27 @@ function fAdv(){return D.adv.filter(r=>inRange(r['Visit Date']||r['Recap Date'])
 function city(r){const s=r['Source Email Subject']||r['Subject']||'';const m=s.match(/Circle K @ (.+?) task/i);return m?m[1].trim():(r['Address']||'').split(',')[1]||'Unknown';}
 function driveThumb(url){if(!url)return'';const m=url.match(/[-\w]{25,}/);return m?`https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`:'';}
 function driveLink(row){for(const v of Object.values(row))if((v||'').includes('drive.google.com'))return v;return'';}
+let _pageState={};
+function paginate(items,key,renderFn,containerId,perPage){
+  perPage=perPage||8;
+  const page=_pageState[key]||1;
+  const totalPages=Math.ceil(items.length/perPage)||1;
+  const start=(page-1)*perPage;
+  const slice=items.slice(start,start+perPage);
+  const body=slice.map(renderFn).join('');
+  let controls='';
+  if(totalPages>1){
+    let nums='';
+    for(let p=1;p<=totalPages;p++){
+      if(p===1||p===totalPages||Math.abs(p-page)<=1){nums+=`<button class="pg-num ${p===page?'active':''}" onclick="setPage('${key}',${p},'${containerId}')">${p}</button>`;}
+      else if(Math.abs(p-page)===2){nums+=`<span class="pg-dots">…</span>`;}
+    }
+    controls=`<div class="pager"><button class="pg-btn" ${page===1?'disabled':''} onclick="setPage('${key}',${page-1},'${containerId}')">← Prev</button>${nums}<button class="pg-btn" ${page===totalPages?'disabled':''} onclick="setPage('${key}',${page+1},'${containerId}')">Next →</button></div>`;
+  }
+  return body+controls;
+}
+function setPage(key,p,containerId){_pageState[key]=p;_paginators[key]&&_paginators[key]();window.scrollTo({top:0,behavior:'smooth'});}
+let _paginators={};
 function advStoreBlock(r,titleLine,metaLine){
   const raw=r['Photos']||'';
   const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);
@@ -621,12 +650,11 @@ function openAdvState(ab){
   const rows=fAdv().filter(r=>r['State']===ab).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
   const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
   const cities=new Set(rows.map(r=>r['City']).filter(Boolean));
-  document.getElementById('adv-detail').innerHTML=`
-    <div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">Advantage · ${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
-    <div>`+
-    rows.map(r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`)).join('')+
-    `</div>`;
+  const key='state_'+ab;_pageState[key]=1;
+  const head=`<div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">Advantage · ${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div>
+    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>`;
+  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`),'adv-detail',8);};
+  _paginators[key]=render;render();
   nav('advantage-detail',null);
 }
 function openAdvRecap(recap){
@@ -634,23 +662,21 @@ function openAdvRecap(recap){
   const sum=D.sum.find(s=>s['Recap Date']===recap)||{};
   const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);
   const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
-  document.getElementById('adv-detail').innerHTML=`
-    <div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>
-    <div>`+
-    rows.map(r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}`)).join('')+
-    `</div>`;
+  const key='recap_'+recap;_pageState[key]=1;
+  const head=`<div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
+    <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>`;
+  const render=()=>{document.getElementById('adv-detail').innerHTML=head+'<div id="adv-detail-body">'+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}`),'adv-detail',8)+'</div>';};
+  _paginators[key]=render;render();
   nav('advantage-detail',null);
 }
 function openAdvChain(chain){
   const rows=fAdv().filter(r=>r['Chain']===chain).sort((a,b)=>new Date(b['Visit Date'])-new Date(a['Visit Date']));
   const states=new Set(rows.map(r=>r['State']).filter(Boolean));
-  document.getElementById('adv-detail').innerHTML=`
-    <div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">Advantage · ${states.size} state${states.size!==1?'s':''}</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
-    <div>`+
-    rows.map(r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`)).join('')+
-    `</div>`;
+  const key='chain_'+chain;_pageState[key]=1;
+  const head=`<div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">Advantage · ${states.size} state${states.size!==1?'s':''}</div>
+    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>`;
+  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`),'adv-detail',8);};
+  _paginators[key]=render;render();
   nav('advantage-detail',null);
 }
 
