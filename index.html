@@ -156,12 +156,23 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .feed-time{font-size:.68rem;color:var(--subtle);white-space:nowrap;padding-top:3px;font-family:var(--mono);font-weight:500}
 .findings-card{background:var(--warn-bg);border:1px solid #f0dede;border-radius:var(--r-lg);padding:18px 20px;margin-bottom:22px}
 .findings-hd{font-size:.82rem;font-weight:800;color:var(--warn);display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.finding-item{font-size:.8rem;color:var(--ink-soft);padding:8px 0;border-bottom:1px solid rgba(207,138,138,.15);font-weight:500;line-height:1.5}
+.finding-item{font-size:.8rem;color:var(--ink-soft);padding:10px 0;border-bottom:1px solid rgba(207,138,138,.15);font-weight:500;line-height:1.5;cursor:pointer;transition:color .14s}
+.finding-item:hover{color:var(--ink)}
+.finding-item:hover .finding-go{opacity:1}
+.finding-go{font-weight:800;color:var(--warn);white-space:nowrap;opacity:0;transition:opacity .14s}
 .finding-item:last-child{border-bottom:none}
 .finding-loc{font-weight:800;color:var(--ink)}
 .photo-strip{display:flex;gap:8px;width:100%;margin-top:12px;flex-wrap:wrap}
 .strip-thumb{width:130px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);transition:transform .2s}
 .strip-thumb:hover{transform:scale(1.04)}
+.store-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:14px;box-shadow:var(--sh-sm)}
+.store-block-hd{margin-bottom:14px}
+.store-block-name{font-size:1rem;font-weight:800;letter-spacing:-.01em}
+.store-block-meta{font-size:.76rem;color:var(--muted);font-weight:500;margin-top:3px}
+.store-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.store-photo{width:100%;height:240px;object-fit:cover;border-radius:12px;border:1px solid var(--border);background:var(--bg-2);transition:transform .2s;cursor:pointer}
+.store-photo:hover{transform:scale(1.01)}
+.store-nophoto{font-size:.78rem;color:var(--subtle);font-weight:500;padding:8px 0}
 .camp-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
 .camp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:22px}
 .camp-rcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
@@ -350,7 +361,7 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
     <div class="sec-hd"><div><div class="sec-title">Visits by Retailer</div><div class="sec-sub">Tap a chain for store-level detail</div></div></div>
     <div class="card" style="margin-bottom:22px"><div class="bar-list" id="adv-retailers"></div></div>
     <div class="sec-hd"><div><div class="sec-title">Coverage by State</div><div class="sec-sub">Tap a state to see its store visits</div></div></div>
-    <div class="card" style="margin-bottom:16px;padding:16px"><div id="adv-map" style="width:100%;min-height:340px"></div></div>
+    <div class="card" style="margin-bottom:16px;padding:14px;max-width:460px"><div id="adv-map" style="width:100%;min-height:220px"></div></div>
     <div class="card"><div class="bar-list" id="adv-states"></div></div>
   </div>
 
@@ -422,7 +433,13 @@ function fAdv(){return D.adv.filter(r=>inRange(r['Visit Date']||r['Recap Date'])
 function city(r){const s=r['Source Email Subject']||r['Subject']||'';const m=s.match(/Circle K @ (.+?) task/i);return m?m[1].trim():(r['Address']||'').split(',')[1]||'Unknown';}
 function driveThumb(url){if(!url)return'';const m=url.match(/[-\w]{25,}/);return m?`https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`:'';}
 function driveLink(row){for(const v of Object.values(row))if((v||'').includes('drive.google.com'))return v;return'';}
-function advPhotos(r){const raw=r['Photos']||'';if(!raw)return'';const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);if(!urls.length)return'';return `<div class="photo-strip">`+urls.map(u=>`<a href="${u.replace('/thumbnail?id=','/file/d/').replace('&sz=w600','/view').replace('https://drive.google.com/file/d/','https://drive.google.com/file/d/')}" target="_blank" onclick="event.stopPropagation()"><img class="strip-thumb" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`;}
+function advStoreBlock(r,titleLine,metaLine){
+  const raw=r['Photos']||'';
+  const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);
+  const photos=urls.length?`<div class="store-photos">`+urls.map(u=>`<a href="${u}" target="_blank"><img class="store-photo" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`:'';
+  return `<div class="store-block"><div class="store-block-hd"><div class="store-block-name">${titleLine}</div><div class="store-block-meta">${metaLine}</div></div>${photos||'<div class="store-nophoto">No photos available</div>'}</div>`;
+}
+function advPhotos(r){const raw=r['Photos']||'';if(!raw)return'';const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);if(!urls.length)return'';return `<div class="photo-strip">`+urls.map(u=>`<a href="${u}" target="_blank" onclick="event.stopPropagation()"><img class="strip-thumb" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`;}
 function posTypes(r){const raw=((r['Point of Sale Placed']||'')+' '+(r['Whether you brought in any point-of-sale materials']||'')).toLowerCase();const types=[];if(raw.includes('wobbler'))types.push('Wobblers');if(raw.includes('sample'))types.push('Samples');if(raw.includes('counter')||raw.includes('rack'))types.push('Counter Rack');if(raw.includes('cling')||raw.includes('window'))types.push('Window Cling');return types;}
 function fmtDate(s,y='numeric'){const d=new Date(s);return isNaN(d)?'—':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:y});}
 function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
@@ -443,10 +460,10 @@ function renderOverview(){
   const allLoc=new Set();I.forEach(r=>{const c=r['Store Location (City)'];if(c)allLoc.add('i'+c.toLowerCase().trim())});S.forEach(r=>allLoc.add('s'+city(r).toLowerCase()));A.forEach(r=>{if(r['City'])allLoc.add('a'+(r['Chain']+r['City']).toLowerCase())});
   set('h-loc',allLoc.size);set('h-pos',posCount+(parseInt(advPos)||0));
   // findings
-  const finds=[];S.forEach(r=>{if(isFlagged(r['Comments / Findings']))finds.push({loc:'Circle K · '+city(r),note:r['Comments / Findings']});});
-  I.forEach(r=>{if(isFlagged(r['Next steps / notes (e.g., if decision maker was not available, who did you meet and when to follow up? did they place an order and if no why? will they order directly via B2B? if not directly, which distributors do they use? will they take a checkstand display?)']))finds.push({loc:r['Store Location (City)'],note:r['Next steps / notes (e.g., if decision maker was not available, who did you meet and when to follow up? did they place an order and if no why? will they order directly via B2B? if not directly, which distributors do they use? will they take a checkstand display?)']});});
+  const finds=[];S.forEach(r=>{if(isFlagged(r['Comments / Findings']))finds.push({loc:'Circle K · '+city(r),note:r['Comments / Findings'],src:'SkyU',key:city(r)});});
+  I.forEach(r=>{const nt=noteOf(r);if(isFlagged(nt))finds.push({loc:r['Store Location (City)']||'Unlabeled location',note:nt,src:'Internal',key:(r['Store Location (City)']||'').trim()});});
   const fc=document.getElementById('ov-findings');
-  if(finds.length){fc.innerHTML=`<div class="findings-card"><div class="findings-hd"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".8" fill="currentColor"/></svg>Flagged Findings (${finds.length})</div>${finds.slice(0,6).map(f=>`<div class="finding-item"><span class="finding-loc">${f.loc}:</span> ${(f.note||'').slice(0,140)}${(f.note||'').length>140?'…':''}</div>`).join('')}</div>`;}else fc.innerHTML='';
+  if(finds.length){fc.innerHTML=`<div class="findings-card"><div class="findings-hd"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".8" fill="currentColor"/></svg>Flagged Findings (${finds.length})</div>${finds.slice(0,8).map(f=>`<div class="finding-item" onclick="goToLoc('${f.src}','${(f.key||'').replace(/'/g,"")}')"><span class="finding-loc">${f.loc}:</span> ${(f.note||'').slice(0,140)}${(f.note||'').length>140?'…':''} <span class="finding-go">Open →</span></div>`).join('')}</div>`;}else fc.innerHTML='';
   renderFeed(buildFeed().slice(0,8),'ov-feed');
 }
 
@@ -473,7 +490,7 @@ function renderInternal(){
   const srch=(document.getElementById('int-srch')?.value||'').toLowerCase();
   const tp=document.getElementById('int-type')?.value||'';
   const locs={};
-  I.forEach(r=>{const c=(r['Store Location (City)']||'Unknown').trim();if(!locs[c])locs[c]=[];locs[c].push(r);});
+  I.forEach(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';if(!locs[c])locs[c]=[];locs[c].push(r);});
   let entries=Object.entries(locs);
   if(posFilter)entries=entries.filter(([loc,rows])=>rows.some(r=>posTypes(r).includes(posFilter)));
   if(tp)entries=entries.filter(([loc,rows])=>rows.some(r=>(r['New or Existing']||'').includes(tp)));
@@ -487,7 +504,7 @@ function renderInternal(){
 }
 function togglePos(c){posFilter=posFilter===c?'':c;renderInternal();}
 function openInternalLoc(loc){
-  const rows=D.int.filter(r=>(r['Store Location (City)']||'').trim()===loc).sort((a,b)=>new Date(b['Timestamp'])-new Date(a['Timestamp']));
+  const rows=D.int.filter(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';return c===loc;}).sort((a,b)=>new Date(b['Timestamp'])-new Date(a['Timestamp']));
   const newest=rows[0]||{};
   const total=rows.length;
   const posSet=new Set();rows.forEach(r=>posTypes(r).forEach(t=>posSet.add(t)));
@@ -580,7 +597,7 @@ function renderStateMap(stateCounts){
   const draw=()=>{
     const counts=stateCounts||{};
     const max=Math.max(1,...Object.values(counts));
-    const W=host.clientWidth||640,H=Math.max(340,W*0.58);
+    const W=host.clientWidth||440,H=Math.max(220,W*0.6);
     host.innerHTML='';
     const svg=d3.select(host).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
     const states=topojson.feature(_usTopo,_usTopo.objects.states).features;
@@ -607,9 +624,9 @@ function openAdvState(ab){
   document.getElementById('adv-detail').innerHTML=`
     <div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">Advantage · ${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div>
     <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
-    <div class="card"><div class="loc-list">`+
-    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}</div></div>${photos}</div>`;}).join('')+
-    `</div></div>`;
+    <div>`+
+    rows.map(r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`)).join('')+
+    `</div>`;
   nav('advantage-detail',null);
 }
 function openAdvRecap(recap){
@@ -620,9 +637,9 @@ function openAdvRecap(recap){
   document.getElementById('adv-detail').innerHTML=`
     <div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
     <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>
-    <div class="card"><div class="loc-list">`+
-    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}</div></div>${photos}</div>`;}).join('')+
-    `</div></div>`;
+    <div>`+
+    rows.map(r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}`)).join('')+
+    `</div>`;
   nav('advantage-detail',null);
 }
 function openAdvChain(chain){
@@ -631,9 +648,9 @@ function openAdvChain(chain){
   document.getElementById('adv-detail').innerHTML=`
     <div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">Advantage · ${states.size} state${states.size!==1?'s':''}</div>
     <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>
-    <div class="card"><div class="loc-list">`+
-    rows.map(r=>{const photos=advPhotos(r);return `<div class="loc-row" style="cursor:default;${photos?'flex-wrap:wrap':''}"><div class="loc-main"><div class="loc-name">Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}</div><div class="loc-meta">Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}</div></div>${photos}</div>`;}).join('')+
-    `</div></div>`;
+    <div>`+
+    rows.map(r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`)).join('')+
+    `</div>`;
   nav('advantage-detail',null);
 }
 
