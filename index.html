@@ -160,6 +160,18 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .finding-item:last-child{border-bottom:none}
 .finding-loc{font-weight:800;color:var(--ink)}
 .camp-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.camp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:22px}
+.camp-rcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
+.camp-rcard:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.camp-rcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.camp-recap-date{font-size:1.4rem;font-weight:900;letter-spacing:-.02em;line-height:1;margin-top:2px}
+.camp-cov-badge{font-size:1.5rem;font-weight:900;letter-spacing:-.03em;color:var(--advantage)}
+.camp-rcard-bar{height:6px;background:var(--bg-3);border-radius:var(--r-pill);overflow:hidden;margin-bottom:16px}
+.camp-rcard-fill{height:100%;background:linear-gradient(90deg,var(--advantage),#dbb083);border-radius:var(--r-pill);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.camp-rcard-stats{display:flex;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.crs-num{font-size:1.15rem;font-weight:900;letter-spacing:-.02em}
+.crs-lbl{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.camp-rcard-actions{display:flex;gap:8px;flex-wrap:wrap}
 .camp-main{background:var(--grad);border-radius:var(--r-lg);padding:26px 30px;color:#fff;position:relative;overflow:hidden}
 .camp-main::after{content:'';position:absolute;right:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(200,151,102,.3),transparent 70%)}
 .camp-recap-lbl{font-size:.66rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--advantage);margin-bottom:10px}
@@ -330,7 +342,7 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
   <!-- ADVANTAGE -->
   <div class="page" id="page-advantage">
     <div class="datebar" id="db-advantage"></div>
-    <div class="sec-hd"><div><div class="sec-title">Latest Campaign</div><div class="sec-sub">Most recent Advantage recap</div></div></div>
+    <div class="sec-hd"><div><div class="sec-title">Campaigns</div><div class="sec-sub">Each Advantage recap — tap to see stores visited</div></div></div>
     <div id="adv-hero"></div>
     <div class="sec-hd"><div><div class="sec-title">Visits by Retailer</div><div class="sec-sub">Tap a chain for store-level detail</div></div></div>
     <div class="card" style="margin-bottom:22px"><div class="bar-list" id="adv-retailers"></div></div>
@@ -516,17 +528,52 @@ function openSkyuLoc(loc){
 // ADVANTAGE
 function renderAdvantage(){
   const A=fAdv();
-  // hero from latest summary
+  // Show ALL campaign recaps as cards (not just the latest)
   const el=document.getElementById('adv-hero');
-  if(D.sum.length){const s=D.sum[0];const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1;const cov=Math.round(v/t*100);const pos=s['POS Placed (Neck Tags/Wobblers)']||'0';const lnk=s['Drive File Link'];
-    el.innerHTML=`<div class="camp-hero"><div class="camp-main"><div class="camp-recap-lbl">Recap · ${s['Recap Date']||''}</div><div class="camp-cov">${cov}%</div><div class="camp-cov-lbl">store coverage</div><div class="camp-detail-stats"><div><div class="cds-num">${v} / ${t}</div><div class="cds-lbl">Stores Visited</div></div><div><div class="cds-num">${pos}</div><div class="cds-lbl">POS Placed</div></div></div>${lnk?`<a href="${lnk}" target="_blank" class="chip" style="margin-top:18px;position:relative;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff">↗ View Full Report</a>`:''}</div><div class="camp-side"><div class="camp-side-card"><div class="css-num" style="color:var(--advantage)">${A.length}</div><div class="css-lbl">store visits logged this period</div></div><div class="camp-side-card"><div class="css-num" style="color:var(--skyu)">${new Set(A.map(r=>r['Chain']).filter(Boolean)).size}</div><div class="css-lbl">retail chains covered</div></div></div></div>`;}
-  else el.innerHTML='<div class="card"><div class="empty">No campaign data yet</div></div>';
-  // retailers
+  if(D.sum.length){
+    el.innerHTML='<div class="camp-cards">'+D.sum.map(s=>{
+      const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1;
+      const cov=Math.round(v/t*100);const pos=s['POS Placed (Neck Tags/Wobblers)']||'0';
+      const lnk=s['Drive File Link'];const recap=s['Recap Date']||'';
+      // count stores actually logged for this recap
+      const storeCount=A.filter(r=>r['Recap Date']===recap).length;
+      return `<div class="camp-rcard">
+        <div class="camp-rcard-top">
+          <div><div class="camp-recap-lbl">Recap</div><div class="camp-recap-date">${recap}</div></div>
+          <div class="camp-cov-badge">${cov}%</div>
+        </div>
+        <div class="camp-rcard-bar"><div class="camp-rcard-fill" style="width:${Math.min(100,cov)}%"></div></div>
+        <div class="camp-rcard-stats">
+          <div><div class="crs-num">${v}/${t}</div><div class="crs-lbl">Stores Visited</div></div>
+          <div><div class="crs-num">${pos}</div><div class="crs-lbl">POS Placed</div></div>
+          <div><div class="crs-num">${storeCount}</div><div class="crs-lbl">Logged</div></div>
+        </div>
+        <div class="camp-rcard-actions">
+          <button class="chip" onclick="openAdvRecap('${recap.replace(/'/g,"")}')">View ${storeCount} stores →</button>
+          ${lnk?`<a href="${lnk}" target="_blank" class="chip" style="border-color:var(--advantage);color:var(--advantage)">↗ Report</a>`:''}
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  } else el.innerHTML='<div class="card"><div class="empty">No campaign data yet</div></div>';
+  // retailers (all recaps in range)
   const ch={};A.forEach(r=>{const c=r['Chain']||'';if(c)ch[c]=(ch[c]||0)+1});const cs=Object.entries(ch).sort((a,b)=>b[1]-a[1]);const cmax=cs[0]?.[1]||1;
   document.getElementById('adv-retailers').innerHTML=cs.length?cs.map(([c,n])=>`<div class="bar-row" onclick="openAdvChain('${c.replace(/'/g,"")}')"><div class="bar-name">${c}</div><div class="bar-track"><div class="bar-fill" style="width:${n/cmax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No visits in this range</div>';
   // states
   const st={};A.forEach(r=>{const s=r['State']||'';if(s)st[s]=(st[s]||0)+1});const ss=Object.entries(st).sort((a,b)=>b[1]-a[1]);const smax=ss[0]?.[1]||1;
   document.getElementById('adv-states').innerHTML=ss.length?ss.map(([s,n])=>`<div class="bar-row" style="cursor:default"><div class="bar-name">${s}</div><div class="bar-track"><div class="bar-fill" style="width:${n/smax*100}%"></div></div><div class="bar-cnt">${n}</div></div>`).join(''):'<div class="empty">No data</div>';
+}
+function openAdvRecap(recap){
+  const rows=D.adv.filter(r=>r['Recap Date']===recap).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
+  const sum=D.sum.find(s=>s['Recap Date']===recap)||{};
+  const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);
+  const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
+  document.getElementById('adv-detail').innerHTML=`
+    <div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
+    <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>
+    <div class="card"><div class="loc-list">`+
+    rows.map(r=>{const lnk=r['Drive File Link'];return `<div class="loc-row" style="cursor:default"><div class="loc-main"><div class="loc-name">${r['Chain']||''} #${r['Store #']||'—'}</div><div class="loc-meta">${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}</div></div>${lnk?`<a href="${lnk}" target="_blank" class="chip" onclick="event.stopPropagation()">↗ Report</a>`:''}</div>`;}).join('')+
+    `</div></div>`;
+  nav('advantage-detail',null);
 }
 function openAdvChain(chain){
   const rows=fAdv().filter(r=>r['Chain']===chain).sort((a,b)=>new Date(b['Visit Date'])-new Date(a['Visit Date']));
