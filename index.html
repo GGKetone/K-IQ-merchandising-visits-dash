@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Ketone-IQ · Field Merchandising</title>
+<title>Ketone-IQ · Field Intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -21,11 +21,12 @@
   --sh-md:0 4px 12px rgba(30,41,59,.07),0 16px 38px rgba(30,41,59,.09);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:14px;-webkit-text-size-adjust:100%}
+html{font-size:14px}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .layout{display:flex;min-height:100vh}
+/* SIDEBAR */
 .sidebar{width:248px;flex-shrink:0;background:var(--navy);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:30}
 .sb-brand{padding:24px 22px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
 .wordmark{font-weight:900;font-size:1.3rem;letter-spacing:-.03em;color:#fff;line-height:1}
@@ -36,7 +37,7 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;margin-bottom:2px;font-size:.84rem;font-weight:600;color:rgba(255,255,255,.55);cursor:pointer;transition:all .18s cubic-bezier(.16,1,.3,1)}
 .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.92);transform:translateX(2px)}
 .nav-item.active{background:rgba(91,141,239,.16);color:var(--accent-2)}
-.ni{width:17px;height:17px;flex-shrink:0;opacity:.6;transition:opacity .18s}
+.ni{width:17px;height:17px;flex-shrink:0;opacity:.6}
 .nav-item.active .ni,.nav-item:hover .ni{opacity:1}
 .sb-foot{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);font-size:.7rem;color:rgba(255,255,255,.42);display:flex;align-items:center;gap:7px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(111,174,142,.2);animation:pulse 2.4s infinite;flex-shrink:0}
@@ -44,36 +45,23 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .mobile-bar{display:none}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .topbar{background:rgba(251,252,254,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:20}
-.tb-left{display:flex;align-items:center;gap:12px;min-width:0}
-.tb-title{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-left{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
+.tb-title{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.tb-search{flex:1;max-width:320px;background:var(--bg-2);border:1.5px solid var(--border);border-radius:var(--r-pill);padding:8px 16px;font-family:var(--font);font-size:.82rem;color:var(--ink);outline:none;transition:all .18s}
+.tb-search:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.tb-search::placeholder{color:var(--subtle)}
 .tb-right{display:flex;align-items:center;gap:12px}
 .sync{font-size:.72rem;color:var(--subtle);font-family:var(--mono);white-space:nowrap}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);font-size:.8rem;font-weight:700;font-family:var(--font);transition:all .18s cubic-bezier(.16,1,.3,1);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);font-size:.8rem;font-weight:700;font-family:var(--font);transition:all .18s;white-space:nowrap}
 .btn-ghost{border:1.5px solid var(--border);color:var(--ink-soft)}
 .btn-ghost:hover{border-color:var(--navy);background:var(--bg-2)}
 .btn-accent{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(91,141,239,.28)}
-.btn-accent:hover{transform:translateY(-1px)}
 .back-btn{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--accent);padding:9px 16px;margin-bottom:16px;border:1.5px solid var(--accent-line);border-radius:var(--r-pill);background:var(--accent-soft);transition:all .18s}
 .back-btn:hover{gap:10px;background:var(--accent);color:#fff;border-color:var(--accent)}
-.pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap}
-.pg-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:var(--r-pill);border:1.5px solid var(--border);color:var(--ink-soft);transition:all .15s}
-.pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
-.pg-btn:disabled{opacity:.4;cursor:not-allowed}
-.pg-num{font-size:.78rem;font-weight:700;width:34px;height:34px;border-radius:9px;color:var(--muted);transition:all .15s}
-.pg-num:hover{background:var(--bg-2);color:var(--ink)}
-.pg-num.active{background:var(--accent);color:#fff}
-.pg-dots{color:var(--subtle);font-weight:700;padding:0 2px}
 .page{display:none;padding:28px 32px 48px}
 .page.active{display:block;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.hero{background:var(--grad);border-radius:var(--r-lg);padding:28px 32px;margin-bottom:22px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh)}
-.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.22),transparent 70%)}
-.hero-eyebrow{font-size:.66rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin-bottom:8px}
-.hero-title{font-size:1.85rem;font-weight:900;letter-spacing:-.04em;line-height:1.05;margin-bottom:6px;position:relative}
-.hero-sub{font-size:.9rem;color:rgba(255,255,255,.78);font-weight:500;position:relative}
-.hero-stats{display:flex;gap:36px;margin-top:20px;position:relative;flex-wrap:wrap}
-.hero-stat-num{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;line-height:1}
-.hero-stat-lbl{font-size:.68rem;color:rgba(255,255,255,.62);font-weight:600;margin-top:3px}
+/* DATEBAR */
 .datebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:22px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-pill);padding:7px 8px 7px 16px;box-shadow:var(--sh-sm);width:fit-content;max-width:100%}
 .datebar-label{font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
 .preset{font-size:.76rem;font-weight:700;padding:6px 13px;border-radius:var(--r-pill);color:var(--muted);transition:all .15s;white-space:nowrap}
@@ -82,130 +70,104 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .date-sep{width:1px;height:20px;background:var(--border);margin:0 2px}
 .date-input{font-family:var(--font);font-size:.76rem;font-weight:600;color:var(--ink-soft);border:1.5px solid var(--border);border-radius:var(--r-pill);padding:5px 12px;outline:none;cursor:pointer;background:var(--bg)}
 .date-input:focus{border-color:var(--accent)}
-.date-arrow{color:var(--subtle)}
-.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
-.summary-card{background:var(--bg);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--sh-sm);border:1px solid var(--border);border-left:4px solid var(--sc,var(--accent));transition:transform .2s,box-shadow .2s}
-.summary-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
-.sc-name{font-size:.82rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.sc-dot{width:9px;height:9px;border-radius:50%;background:var(--sc)}
-.sc-big{font-size:2.5rem;font-weight:900;line-height:.95;letter-spacing:-.04em}
-.sc-big-lbl{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:3px}
-.sc-meta{display:flex;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-.sc-meta-num{font-size:1.1rem;font-weight:800}
-.sc-meta-lbl{font-size:.64rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+/* HERO */
+.hero{background:var(--grad);border-radius:var(--r-lg);padding:28px 32px;margin-bottom:22px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.hero::after{content:'';position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.22),transparent 70%)}
+.hero-eyebrow{font-size:.66rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2);margin-bottom:12px}
+.hero-stats{display:flex;gap:36px;flex-wrap:wrap;position:relative}
+.hero-stat-num{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;line-height:1}
+.hero-stat-lbl{font-size:.68rem;color:rgba(255,255,255,.62);font-weight:600;margin-top:3px}
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s;border-top:3px solid var(--kc,var(--accent))}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.kpi-label{font-size:.63rem;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-size:2rem;font-weight:900;letter-spacing:-.04em;line-height:1}
+.kpi-sub{font-size:.68rem;color:var(--muted);margin-top:6px;font-weight:500}
+/* SECTION */
 .sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
 .sec-title{font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
 .sec-sub{font-size:.78rem;color:var(--muted);font-weight:500;margin-top:2px}
-.sec-count{font-size:.72rem;color:var(--muted);font-family:var(--mono);font-weight:500}
+.sec-count{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
 .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-sm);overflow:hidden}
 .toolbar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg-2);flex-wrap:wrap}
-.srch{flex:1;min-width:160px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-pill);padding:9px 16px;font-family:var(--font);font-size:.82rem;font-weight:500;color:var(--ink);outline:none;transition:all .18s}
+.srch{flex:1;min-width:160px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-pill);padding:9px 16px;font-family:var(--font);font-size:.82rem;color:var(--ink);outline:none}
 .srch:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .fsel{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-pill);padding:9px 14px;font-family:var(--font);font-size:.78rem;font-weight:600;color:var(--ink-soft);outline:none;cursor:pointer}
-.fsel:focus,.fsel:hover{border-color:var(--accent)}
-/* LOCATION LIST */
+/* ACTION ITEMS */
+.action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.action-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;cursor:pointer;transition:all .18s;border-left:4px solid var(--ac,var(--warn))}
+.action-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md);border-color:var(--ac)}
+.ac-num{font-size:2.2rem;font-weight:900;letter-spacing:-.04em;line-height:1;color:var(--ac)}
+.ac-label{font-size:.78rem;font-weight:700;margin-top:6px;color:var(--ink)}
+.ac-sub{font-size:.66rem;color:var(--muted);margin-top:2px;font-weight:500}
+/* LOC LIST */
 .loc-list{display:flex;flex-direction:column}
 .loc-row{display:flex;align-items:center;gap:16px;padding:15px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .14s}
 .loc-row:last-child{border-bottom:none}
 .loc-row:hover{background:var(--accent-soft)}
 .loc-rank{font-size:.72rem;font-family:var(--mono);color:var(--subtle);font-weight:600;width:24px;flex-shrink:0}
 .loc-main{flex:1;min-width:0}
-.loc-name{font-size:.92rem;font-weight:800;letter-spacing:-.01em}
+.loc-name{font-size:.92rem;font-weight:800}
 .loc-meta{font-size:.72rem;color:var(--muted);margin-top:2px;font-weight:500}
 .loc-bar-wrap{width:120px;flex-shrink:0}
 .loc-bar{height:6px;background:var(--bg-3);border-radius:var(--r-pill);overflow:hidden}
 .loc-bar-fill{height:100%;border-radius:var(--r-pill);transition:width 1s cubic-bezier(.16,1,.3,1)}
 .loc-count{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;min-width:60px}
-.loc-count-num{font-size:1.3rem;font-weight:900;letter-spacing:-.02em}
+.loc-count-num{font-size:1.3rem;font-weight:900}
 .loc-count-lbl{font-size:.62rem;color:var(--muted);font-weight:600;text-transform:uppercase}
 .loc-arrow{color:var(--subtle);flex-shrink:0;transition:transform .15s}
 .loc-row:hover .loc-arrow{transform:translateX(3px);color:var(--accent)}
-/* DETAIL PAGE */
+/* DETAIL */
 .detail-hd{background:var(--grad);border-radius:var(--r-lg);padding:26px 30px;margin-bottom:22px;color:#fff;position:relative;overflow:hidden}
 .detail-hd::after{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,239,.2),transparent 70%)}
 .detail-name{font-size:1.7rem;font-weight:900;letter-spacing:-.03em;position:relative}
 .detail-meta{font-size:.85rem;color:rgba(255,255,255,.75);margin-top:6px;font-weight:500;position:relative}
 .detail-stats{display:flex;gap:30px;margin-top:18px;position:relative;flex-wrap:wrap}
-.detail-stat-num{font-size:1.5rem;font-weight:900;letter-spacing:-.02em}
-.detail-stat-lbl{font-size:.66rem;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
-.visit-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:16px;box-shadow:var(--sh-sm);transition:box-shadow .2s}
-.visit-block:hover{box-shadow:var(--sh)}
+.detail-stat-num{font-size:1.5rem;font-weight:900}
+.detail-stat-lbl{font-size:.66rem;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;margin-top:2px}
+.visit-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:16px;box-shadow:var(--sh-sm)}
 .visit-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .visit-date{font-size:.92rem;font-weight:800;display:flex;align-items:center;gap:9px}
 .visit-date-ico{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
 .visit-badges{display:flex;gap:7px;flex-wrap:wrap}
 .visit-notes{font-size:.85rem;line-height:1.65;color:var(--ink-soft);font-weight:500}
 .visit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-.vg-item{}
 .vg-lbl{font-size:.63rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
 .vg-val{font-size:.84rem;font-weight:600}
 .visit-photo{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-.photo-thumb{display:block;width:100%;max-width:280px;border-radius:12px;border:1px solid var(--border);transition:transform .2s;background:var(--bg-2)}
-.photo-thumb:hover{transform:scale(1.02)}
-.photo-link{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:var(--accent);margin-top:8px}
+.photo-thumb{display:block;width:100%;max-width:280px;border-radius:12px;border:1px solid var(--border);background:var(--bg-2)}
 .pill{display:inline-flex;align-items:center;font-size:.64rem;font-weight:700;padding:4px 10px;border-radius:var(--r-pill);white-space:nowrap}
 .chip{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;padding:7px 14px;border-radius:var(--r-pill);border:1.5px solid var(--border);color:var(--muted);transition:all .18s;white-space:nowrap}
 .chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+/* FEED */
+.feed-item{display:flex;align-items:flex-start;gap:13px;padding:15px 18px;border-bottom:1px solid var(--border);transition:background .14s;cursor:pointer}
+.feed-item:last-child{border-bottom:none}
+.feed-item:hover{background:var(--bg-2)}
+.feed-ico{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:900;margin-top:1px}
+.feed-body{flex:1;min-width:0}
+.feed-store{font-size:.88rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed-meta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
+.feed-notes{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.55;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.feed-time{font-size:.68rem;color:var(--subtle);white-space:nowrap;padding-top:3px;font-family:var(--mono)}
+/* ISSUE ROW */
+.issue-row{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .14s}
+.issue-row:last-child{border-bottom:none}
+.issue-row:hover{background:var(--warn-bg)}
+.issue-badge{width:8px;height:8px;border-radius:50%;background:var(--warn);margin-top:7px;flex-shrink:0}
+.issue-body{flex:1;min-width:0}
+.issue-store{font-size:.88rem;font-weight:800}
+.issue-note{font-size:.78rem;color:var(--ink-soft);margin-top:4px;line-height:1.55;font-weight:500}
+.issue-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+/* POS GRID */
 .pos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
 .pos-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--sh-sm);cursor:pointer;transition:all .18s;border-top:4px solid var(--pc,var(--internal))}
 .pos-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
 .pos-card.active{background:var(--accent-soft);border-color:var(--accent)}
 .pos-num{font-size:2.2rem;font-weight:900;letter-spacing:-.04em;line-height:1;color:var(--pc)}
 .pos-lbl{font-size:.78rem;font-weight:700;margin-top:6px}
-.pos-sub{font-size:.66rem;color:var(--muted);font-weight:500;margin-top:2px}
-.feed-item{display:flex;align-items:flex-start;gap:13px;padding:15px 18px;border-bottom:1px solid var(--border);transition:background .14s;cursor:pointer}
-.feed-item:last-child{border-bottom:none}
-.feed-item:hover{background:var(--bg-2)}
-.feed-ico{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:900;margin-top:1px}
-.feed-body{flex:1;min-width:0}
-.feed-store{font-size:.88rem;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.feed-meta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
-.feed-notes{font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.55;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.feed-time{font-size:.68rem;color:var(--subtle);white-space:nowrap;padding-top:3px;font-family:var(--mono);font-weight:500}
-.findings-card{background:var(--warn-bg);border:1px solid #f0dede;border-radius:var(--r-lg);padding:18px 20px;margin-bottom:22px}
-.findings-hd{font-size:.82rem;font-weight:800;color:var(--warn);display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.finding-item{font-size:.8rem;color:var(--ink-soft);padding:10px 0;border-bottom:1px solid rgba(207,138,138,.15);font-weight:500;line-height:1.5;cursor:pointer;transition:color .14s}
-.finding-item:hover{color:var(--ink)}
-.finding-item:hover .finding-go{opacity:1}
-.finding-go{font-weight:800;color:var(--warn);white-space:nowrap;opacity:0;transition:opacity .14s}
-.finding-item:last-child{border-bottom:none}
-.finding-loc{font-weight:800;color:var(--ink)}
-.photo-strip{display:flex;gap:8px;width:100%;margin-top:12px;flex-wrap:wrap}
-.strip-thumb{width:130px;height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:var(--bg-2);transition:transform .2s}
-.strip-thumb:hover{transform:scale(1.04)}
-.store-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:14px;box-shadow:var(--sh-sm)}
-.store-block-hd{margin-bottom:14px}
-.store-block-name{font-size:1rem;font-weight:800;letter-spacing:-.01em}
-.store-block-meta{font-size:.76rem;color:var(--muted);font-weight:500;margin-top:3px}
-.store-photos{display:flex;gap:12px;flex-wrap:wrap}
-.store-photo{width:260px;max-width:100%;height:200px;object-fit:contain;border-radius:12px;border:1px solid var(--border);background:var(--bg-3);transition:transform .2s;cursor:pointer}
-.store-photo:hover{transform:scale(1.01)}
-.store-nophoto{font-size:.78rem;color:var(--subtle);font-weight:500;padding:8px 0}
-.camp-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-.camp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:22px}
-.camp-rcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
-.camp-rcard:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
-.camp-rcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.camp-recap-date{font-size:1.4rem;font-weight:900;letter-spacing:-.02em;line-height:1;margin-top:2px}
-.camp-cov-badge{font-size:1.5rem;font-weight:900;letter-spacing:-.03em;color:var(--advantage)}
-.camp-rcard-bar{height:6px;background:var(--bg-3);border-radius:var(--r-pill);overflow:hidden;margin-bottom:16px}
-.camp-rcard-fill{height:100%;background:linear-gradient(90deg,var(--advantage),#dbb083);border-radius:var(--r-pill);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
-.camp-rcard-stats{display:flex;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:14px}
-.crs-num{font-size:1.15rem;font-weight:900;letter-spacing:-.02em}
-.crs-lbl{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-.camp-rcard-actions{display:flex;gap:8px;flex-wrap:wrap}
-.camp-main{background:var(--grad);border-radius:var(--r-lg);padding:26px 30px;color:#fff;position:relative;overflow:hidden}
-.camp-main::after{content:'';position:absolute;right:-40px;bottom:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(200,151,102,.3),transparent 70%)}
-.camp-recap-lbl{font-size:.66rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--advantage);margin-bottom:10px}
-.camp-cov{font-size:3.4rem;font-weight:900;letter-spacing:-.04em;line-height:1;position:relative}
-.camp-cov-lbl{font-size:.8rem;color:rgba(255,255,255,.7);font-weight:500;position:relative}
-.camp-detail-stats{display:flex;gap:28px;margin-top:20px;position:relative}
-.cds-num{font-size:1.4rem;font-weight:900}
-.cds-lbl{font-size:.64rem;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;margin-top:2px}
-.camp-side{display:flex;flex-direction:column;gap:12px}
-.camp-side-card{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh-sm);display:flex;flex-direction:column;justify-content:center}
-.css-num{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;line-height:1}
-.css-lbl{font-size:.72rem;color:var(--muted);font-weight:600;margin-top:4px}
+.pos-sub{font-size:.66rem;color:var(--muted);margin-top:2px;font-weight:500}
+/* BAR LIST */
 .bar-list{padding:6px 18px 12px}
 .bar-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;border-radius:8px}
 .bar-row:last-child{border-bottom:none}
@@ -214,7 +176,36 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .bar-track{width:140px;height:7px;background:var(--bg-3);border-radius:var(--r-pill);overflow:hidden}
 .bar-fill{height:100%;background:linear-gradient(90deg,var(--advantage),#dbb083);border-radius:var(--r-pill);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
 .bar-cnt{font-size:.84rem;font-family:var(--mono);font-weight:700;width:30px;text-align:right}
-.empty{text-align:center;padding:48px;color:var(--muted);font-size:.84rem;font-weight:500}
+/* STORE BLOCKS */
+.store-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;margin-bottom:14px;box-shadow:var(--sh-sm)}
+.store-block-name{font-size:1rem;font-weight:800}
+.store-block-meta{font-size:.76rem;color:var(--muted);font-weight:500;margin-top:3px}
+.store-photos{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+.store-photo{width:260px;max-width:100%;height:200px;object-fit:contain;border-radius:12px;border:1px solid var(--border);background:var(--bg-3)}
+/* CAMP CARDS */
+.camp-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:22px}
+.camp-rcard{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--sh-sm);transition:transform .2s,box-shadow .2s}
+.camp-rcard:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.camp-rcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.camp-recap-lbl{font-size:.66rem;font-weight:800;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.camp-recap-date{font-size:1.4rem;font-weight:900;letter-spacing:-.02em;line-height:1;margin-top:2px}
+.camp-cov-badge{font-size:1.5rem;font-weight:900;color:var(--advantage)}
+.camp-rcard-bar{height:6px;background:var(--bg-3);border-radius:var(--r-pill);overflow:hidden;margin-bottom:16px}
+.camp-rcard-fill{height:100%;background:linear-gradient(90deg,var(--advantage),#dbb083);border-radius:var(--r-pill);transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.camp-rcard-stats{display:flex;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.crs-num{font-size:1.15rem;font-weight:900}
+.crs-lbl{font-size:.62rem;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px}
+.camp-rcard-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* PAGER */
+.pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:20px;flex-wrap:wrap}
+.pg-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:var(--r-pill);border:1.5px solid var(--border);color:var(--ink-soft)}
+.pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed}
+.pg-num{font-size:.78rem;font-weight:700;width:34px;height:34px;border-radius:9px;color:var(--muted)}
+.pg-num:hover{background:var(--bg-2);color:var(--ink)}
+.pg-num.active{background:var(--accent);color:#fff}
+.pg-dots{color:var(--subtle);font-weight:700}
+/* CONFIG */
 .cfg-wrap{max-width:520px}
 .cfg-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:26px;box-shadow:var(--sh-sm);margin-bottom:16px}
 .cfg-title{font-size:1rem;font-weight:800;margin-bottom:5px}
@@ -236,34 +227,45 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 .modal-err{font-size:.76rem;color:var(--warn);text-align:center;margin-bottom:12px;display:none;font-weight:700}
 .modal-btns{display:flex;gap:10px}
 .modal-btns .btn{flex:1;justify-content:center}
+/* SEARCH RESULTS */
+.search-results{padding:18px;display:flex;flex-direction:column;gap:8px}
+.search-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:11px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.search-item:hover{background:var(--accent-soft);border-color:var(--accent)}
+.search-item-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;flex-shrink:0}
+.search-item-body{flex:1;min-width:0}
+.search-item-name{font-size:.85rem;font-weight:700}
+.search-item-meta{font-size:.72rem;color:var(--muted);font-weight:500;margin-top:1px}
+.empty{text-align:center;padding:48px;color:var(--muted);font-size:.84rem;font-weight:500}
 .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px;gap:14px;color:var(--muted);font-weight:500}
 .spinner{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:1024px){.summary-row{grid-template-columns:1fr}.pos-grid{grid-template-columns:repeat(2,1fr)}.camp-hero{grid-template-columns:1fr}.hero-title{font-size:1.55rem}}
+@media(max-width:1024px){.kpi-row{grid-template-columns:repeat(3,1fr)}.pos-grid{grid-template-columns:repeat(2,1fr)}.camp-cards{grid-template-columns:1fr}.hero-stats{gap:24px}}
 @media(max-width:768px){
   html{font-size:13.5px}.sidebar{display:none}
   .mobile-bar{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:56px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40}
   .mobile-menu-btn{width:38px;height:38px;border-radius:10px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center}
-  .topbar{padding:0 18px;min-height:56px}.tb-title{font-size:1.05rem}.sync{display:none}
-  .page{padding:18px 16px 40px}.hero{padding:22px 20px}.hero-title{font-size:1.4rem}.hero-stats{gap:24px}
-  .datebar{width:100%;border-radius:14px}.loc-bar-wrap{display:none}
+  .topbar{padding:0 18px;min-height:56px}.tb-title{font-size:1.05rem}.sync{display:none}.tb-search{max-width:180px}
+  .page{padding:18px 16px 40px}.hero{padding:22px 20px}.hero-stats{gap:20px}.kpi-row{grid-template-columns:repeat(2,1fr)}
+  .datebar{width:100%;border-radius:14px}.loc-bar-wrap{display:none}.action-grid{grid-template-columns:repeat(2,1fr)}
   .sidebar.mobile-open{display:flex;position:fixed;inset:0 auto 0 0;width:260px;box-shadow:var(--sh-md);animation:slideIn .3s cubic-bezier(.16,1,.3,1)}
   @keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
   .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(30,41,59,.45);z-index:25}
   .mobile-overlay.show{display:block}
 }
-@media(max-width:480px){.pos-grid{grid-template-columns:1fr}.hero-stat-num{font-size:1.5rem}}
+@media(max-width:480px){.pos-grid{grid-template-columns:1fr}.hero-stat-num{font-size:1.5rem}.action-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="layout">
 <div class="mobile-overlay" id="m-overlay" onclick="closeMobileNav()"></div>
 <aside class="sidebar" id="sidebar">
-  <div class="sb-brand"><div class="wordmark">KETONE<span>-IQ</span></div><div class="sb-tag">Field Merchandising</div></div>
+  <div class="sb-brand"><div class="wordmark">KETONE<span>-IQ</span></div><div class="sb-tag">Field Intelligence</div></div>
   <nav class="sb-nav">
-    <div class="nav-sect">Overview</div>
-    <div class="nav-item active" data-nav="overview" onclick="nav('overview',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><rect x="1.5" y="1.5" width="6.5" height="6.5" rx="2" fill="currentColor" opacity=".55"/><rect x="10" y="1.5" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="1.5" y="10" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="10" y="10" width="6.5" height="6.5" rx="2" fill="currentColor" opacity=".55"/></svg>Dashboard</div>
-    <div class="nav-item" data-nav="activity" onclick="nav('activity',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.2" stroke="currentColor" stroke-width="1.5"/><path d="M9 4.5V9l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Recent Activity</div>
+    <div class="nav-sect">Intelligence</div>
+    <div class="nav-item active" data-nav="command" onclick="nav('command',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><rect x="1.5" y="1.5" width="6.5" height="6.5" rx="2" fill="currentColor" opacity=".55"/><rect x="10" y="1.5" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="1.5" y="10" width="6.5" height="6.5" rx="2" fill="currentColor"/><rect x="10" y="10" width="6.5" height="6.5" rx="2" fill="currentColor" opacity=".55"/></svg>Command Center</div>
+    <div class="nav-item" data-nav="coverage" onclick="nav('coverage',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M9 13.5v3M6 17h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Coverage</div>
+    <div class="nav-item" data-nav="execution" onclick="nav('execution',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><path d="M2.5 12.5l4-4 3 3 5.5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Execution</div>
+    <div class="nav-item" data-nav="issues" onclick="nav('issues',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><path d="M9 2L2 15h14L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 7v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="13" r=".8" fill="currentColor"/></svg>Issues</div>
     <div class="nav-sect">Sources</div>
     <div class="nav-item" data-nav="internal" onclick="nav('internal',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="5.5" r="3.1" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 15.5c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Internal Team</div>
     <div class="nav-item" data-nav="skyu" onclick="nav('skyu',this)"><svg class="ni" viewBox="0 0 18 18" fill="none"><path d="M9 1.5l2 4.1 4.5.65-3.25 3.2.77 4.5L9 11.8l-4.02 2.15.77-4.5L2.5 6.25 7 5.6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>SkyU · Circle K</div>
@@ -280,124 +282,95 @@ button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
     <button class="mobile-menu-btn" onclick="loadAll()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 11-1.6-3.9M13.5 2v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   <div class="topbar">
-    <div class="tb-left"><div class="tb-title" id="page-title">Dashboard</div></div>
+    <div class="tb-left"><div class="tb-title" id="page-title">Command Center</div><input class="tb-search" id="global-search" placeholder="Search stores, cities, retailers…" oninput="runSearch(this.value)"></div>
     <div class="tb-right"><span class="sync" id="sync">Fetching…</span><button class="btn btn-ghost" onclick="loadAll()">↻ Refresh</button></div>
   </div>
 
-  <!-- OVERVIEW -->
-  <div class="page active" id="page-overview">
-    <div class="hero">
-      <div class="hero-eyebrow">Consolidated Field Merchandising</div>
-      <div class="hero-stats" style="margin-top:16px">
-        <div><div class="hero-stat-num" id="h-total">—</div><div class="hero-stat-lbl">Total Visits</div></div>
-        <div><div class="hero-stat-num" id="h-loc">—</div><div class="hero-stat-lbl">Locations Covered</div></div>
-        <div><div class="hero-stat-num" id="h-pos">—</div><div class="hero-stat-lbl">POS Placements</div></div>
-      </div>
-    </div>
-    <div class="datebar" id="db-overview"></div>
-    <div class="summary-row">
-      <div class="summary-card" style="--sc:var(--internal)" onclick="nav('internal',document.querySelector('[data-nav=internal]'))">
-        <div class="sc-name"><span class="sc-dot"></span>Internal Team</div>
-        <div class="sc-big" id="ov-int">—</div><div class="sc-big-lbl">store visits</div>
-        <div class="sc-meta"><div><div class="sc-meta-num" id="ov-int-new">—</div><div class="sc-meta-lbl">New Accts</div></div><div><div class="sc-meta-num" id="ov-int-pos">—</div><div class="sc-meta-lbl">POS Placed</div></div></div>
-      </div>
-      <div class="summary-card" style="--sc:var(--skyu)" onclick="nav('skyu',document.querySelector('[data-nav=skyu]'))">
-        <div class="sc-name"><span class="sc-dot"></span>SkyU · Circle K</div>
-        <div class="sc-big" id="ov-sk">—</div><div class="sc-big-lbl">tasks completed</div>
-        <div class="sc-meta"><div><div class="sc-meta-num" id="ov-sk-cities">—</div><div class="sc-meta-lbl">Cities</div></div><div><div class="sc-meta-num" id="ov-sk-issues">—</div><div class="sc-meta-lbl">Flagged</div></div></div>
-      </div>
-      <div class="summary-card" style="--sc:var(--advantage)" onclick="nav('advantage',document.querySelector('[data-nav=advantage]'))">
-        <div class="sc-name"><span class="sc-dot"></span>Advantage</div>
-        <div class="sc-big" id="ov-adv">—</div><div class="sc-big-lbl">store visits</div>
-        <div class="sc-meta"><div><div class="sc-meta-num" id="ov-adv-cov">—</div><div class="sc-meta-lbl">Coverage</div></div><div><div class="sc-meta-num" id="ov-adv-pos">—</div><div class="sc-meta-lbl">POS Placed</div></div></div>
-      </div>
-    </div>
-    <div id="ov-findings"></div>
-    <div class="sec-hd"><div><div class="sec-title">Recent Activity</div><div class="sec-sub">Latest visits across all sources</div></div><button class="btn btn-ghost" style="font-size:.74rem;padding:7px 14px" onclick="nav('activity',document.querySelector('[data-nav=activity]'))">View all →</button></div>
-    <div class="card" id="ov-feed"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+  <!-- SEARCH RESULTS OVERLAY -->
+  <div class="page" id="page-search"><div class="sec-hd"><div class="sec-title" id="search-title">Search Results</div></div><div class="card"><div id="search-body" class="search-results"></div></div></div>
+
+  <!-- COMMAND CENTER -->
+  <div class="page active" id="page-command">
+    <div class="hero"><div class="hero-eyebrow">Field Intelligence Platform</div><div class="hero-stats"><div><div class="hero-stat-num" id="h-total">—</div><div class="hero-stat-lbl">Total Visits</div></div><div><div class="hero-stat-num" id="h-loc">—</div><div class="hero-stat-lbl">Locations Covered</div></div><div><div class="hero-stat-num" id="h-retail">—</div><div class="hero-stat-lbl">Retailers</div></div><div><div class="hero-stat-num" id="h-pos">—</div><div class="hero-stat-lbl">POS Installed</div></div><div><div class="hero-stat-num" id="h-new">—</div><div class="hero-stat-lbl">New Accounts</div></div><div><div class="hero-stat-num" id="h-issues">—</div><div class="hero-stat-lbl">Issues Detected</div></div></div></div>
+    <div class="datebar" id="db-main"></div>
+    <div class="sec-hd"><div><div class="sec-title">Action Center</div><div class="sec-sub">Items that need attention right now</div></div></div>
+    <div class="action-grid" id="cmd-actions"></div>
+    <div class="sec-hd"><div><div class="sec-title">Activity Stream</div><div class="sec-sub">Recent meaningful events</div></div></div>
+    <div class="card" id="cmd-feed"><div class="loading"><div class="spinner"></div>Loading…</div></div>
   </div>
 
-  <!-- ACTIVITY -->
-  <div class="page" id="page-activity">
-    <div class="datebar" id="db-activity"></div>
-    <div class="sec-hd"><div class="sec-title">All Field Visits</div><span class="sec-count" id="act-count"></span></div>
-    <div class="card">
-      <div class="toolbar"><input class="srch" id="act-srch" placeholder="Search store, city, notes…" oninput="renderActivity()"><select class="fsel" id="act-src" onchange="renderActivity()"><option value="">All sources</option><option value="Internal">Internal Team</option><option value="SkyU">SkyU</option><option value="Advantage">Advantage</option></select></div>
-      <div id="act-feed"></div>
-    </div>
+  <!-- COVERAGE -->
+  <div class="page" id="page-coverage">
+    <div class="datebar" id="db-coverage"></div>
+    <div class="sec-hd"><div><div class="sec-title">Geographic Coverage</div><div class="sec-sub">Tap a state to explore</div></div></div>
+    <div class="card" style="padding:14px;margin-bottom:22px;max-width:520px"><div id="cov-map" style="width:100%;min-height:260px"></div></div>
+    <div class="sec-hd"><div><div class="sec-title">Retailers</div><div class="sec-sub">All sources combined</div></div></div>
+    <div class="card" style="margin-bottom:22px"><div class="bar-list" id="cov-retailers"></div></div>
+    <div class="sec-hd"><div><div class="sec-title">States</div></div></div>
+    <div class="card"><div class="bar-list" id="cov-states"></div></div>
   </div>
 
-  <!-- INTERNAL (list) -->
+  <!-- EXECUTION -->
+  <div class="page" id="page-execution">
+    <div class="datebar" id="db-execution"></div>
+    <div class="sec-hd"><div><div class="sec-title">POS Deployment</div><div class="sec-sub">What was installed across all visits</div></div></div>
+    <div class="pos-grid" id="exec-pos"></div>
+    <div class="sec-hd"><div><div class="sec-title">Advantage Campaigns</div></div></div>
+    <div class="camp-cards" id="exec-camps"></div>
+    <div class="sec-hd"><div><div class="sec-title">All Locations with POS</div></div><span class="sec-count" id="exec-count"></span></div>
+    <div class="card"><div class="loc-list" id="exec-list"></div></div>
+  </div>
+
+  <!-- ISSUES -->
+  <div class="page" id="page-issues">
+    <div class="datebar" id="db-issues"></div>
+    <div class="sec-hd"><div><div class="sec-title">Issue Tracker</div><div class="sec-sub">All flagged findings across every source</div></div><span class="sec-count" id="issues-count"></span></div>
+    <div class="card"><div class="toolbar"><input class="srch" id="iss-srch" placeholder="Search issues…" oninput="renderIssues()"><select class="fsel" id="iss-src" onchange="renderIssues()"><option value="">All sources</option><option value="Internal">Internal</option><option value="SkyU">SkyU</option></select></div><div id="issues-list"></div></div>
+  </div>
+
+  <!-- INTERNAL -->
   <div class="page" id="page-internal">
     <div class="datebar" id="db-internal"></div>
-    <div class="sec-hd"><div><div class="sec-title">POS Placements</div><div class="sec-sub">Tap a category to see where it was placed</div></div></div>
-    <div class="pos-grid" id="int-pos-grid"></div>
-    <div class="sec-hd"><div><div class="sec-title">Locations</div><div class="sec-sub">Tap a location for full visit history</div></div><span class="sec-count" id="int-count"></span></div>
-    <div class="card">
-      <div class="toolbar"><input class="srch" id="int-srch" placeholder="Search location…" oninput="renderInternal()"><select class="fsel" id="int-type" onchange="renderInternal()"><option value="">All types</option><option value="New">New accounts</option><option value="Existing">Existing accounts</option></select></div>
-      <div class="loc-list" id="int-list"></div>
-    </div>
+    <div class="sec-hd"><div><div class="sec-title">Internal Team Locations</div><div class="sec-sub">Tap a location for full visit history</div></div><span class="sec-count" id="int-count"></span></div>
+    <div class="card"><div class="toolbar"><input class="srch" id="int-srch" placeholder="Search location…" oninput="renderInternal()"><select class="fsel" id="int-type" onchange="renderInternal()"><option value="">All types</option><option value="New">New accounts</option><option value="Existing">Existing accounts</option></select></div><div class="loc-list" id="int-list"></div></div>
   </div>
+  <div class="page" id="page-internal-detail"><a class="back-btn" onclick="nav('internal',document.querySelector('[data-nav=internal]'))">← Back to locations</a><div id="int-detail"></div></div>
 
-  <!-- INTERNAL DETAIL -->
-  <div class="page" id="page-internal-detail">
-    <a class="back-btn" onclick="nav('internal',document.querySelector('[data-nav=internal]'))">← Back to locations</a>
-    <div id="int-detail"></div>
-  </div>
-
-  <!-- SKYU (list) -->
+  <!-- SKYU -->
   <div class="page" id="page-skyu">
     <div class="datebar" id="db-skyu"></div>
     <div class="sec-hd"><div><div class="sec-title">Circle K Locations</div><div class="sec-sub">Tap a location for full task history</div></div><span class="sec-count" id="sk-count"></span></div>
-    <div class="card">
-      <div class="toolbar"><input class="srch" id="sk-srch" placeholder="Search city…" oninput="renderSkyu()"></div>
-      <div class="loc-list" id="sk-list"></div>
-    </div>
+    <div class="card"><div class="toolbar"><input class="srch" id="sk-srch" placeholder="Search city…" oninput="renderSkyu()"></div><div class="loc-list" id="sk-list"></div></div>
   </div>
-
-  <!-- SKYU DETAIL -->
-  <div class="page" id="page-skyu-detail">
-    <a class="back-btn" onclick="nav('skyu',document.querySelector('[data-nav=skyu]'))">← Back to locations</a>
-    <div id="sk-detail"></div>
-  </div>
+  <div class="page" id="page-skyu-detail"><a class="back-btn" onclick="nav('skyu',document.querySelector('[data-nav=skyu]'))">← Back to locations</a><div id="sk-detail"></div></div>
 
   <!-- ADVANTAGE -->
   <div class="page" id="page-advantage">
     <div class="datebar" id="db-advantage"></div>
-    <div class="sec-hd"><div><div class="sec-title">Campaigns</div><div class="sec-sub">Each Advantage recap — tap to see stores visited</div></div></div>
-    <div id="adv-hero"></div>
+    <div class="sec-hd"><div><div class="sec-title">Advantage Campaigns</div></div></div>
+    <div class="camp-cards" id="adv-camps"></div>
     <div class="sec-hd"><div><div class="sec-title">Visits by Retailer</div><div class="sec-sub">Tap a chain for store-level detail</div></div></div>
-    <div class="card" style="margin-bottom:22px"><div class="bar-list" id="adv-retailers"></div></div>
-    <div class="sec-hd"><div><div class="sec-title">Coverage by State</div><div class="sec-sub">Tap a state to see its store visits</div></div></div>
-    <div class="card" style="margin-bottom:16px;padding:14px;max-width:460px"><div id="adv-map" style="width:100%;min-height:220px"></div></div>
-    <div class="card"><div class="bar-list" id="adv-states"></div></div>
+    <div class="card"><div class="bar-list" id="adv-retailers"></div></div>
   </div>
-
-  <!-- ADVANTAGE DETAIL -->
-  <div class="page" id="page-advantage-detail">
-    <a class="back-btn" onclick="nav('advantage',document.querySelector('[data-nav=advantage]'))">← Back to campaign</a>
-    <div id="adv-detail"></div>
-  </div>
+  <div class="page" id="page-advantage-detail"><a class="back-btn" onclick="nav('advantage',document.querySelector('[data-nav=advantage]'))">← Back to campaign</a><div id="adv-detail"></div></div>
+  <div class="page" id="page-coverage-detail"><a class="back-btn" onclick="nav('coverage',document.querySelector('[data-nav=coverage]'))">← Back to coverage</a><div id="cov-detail"></div></div>
 
   <!-- CONFIG -->
   <div class="page" id="page-config">
     <div class="cfg-wrap">
-      <div class="cfg-card"><div class="cfg-title">Connect Your Google Sheet</div><div class="cfg-sub">Reads live data via a published CSV link. No API key needed.</div><div class="fg"><label class="fl">Sheet ID</label><input class="fi" id="cfg-id" value="15hEIIX9oeOheBH24DUm07xFSAsm3uHstRqq3KirY1bU"/></div><button class="btn btn-accent" onclick="saveCfg()">Save & Reload</button><div class="cfg-note"><strong>Setup:</strong> Sheet → <strong>File → Share → Publish to web</strong> → Entire Document → Publish.</div></div>
+      <div class="cfg-card"><div class="cfg-title">Connect Your Google Sheet</div><div class="cfg-sub">Reads live data via a published CSV link.</div><div class="fg"><label class="fl">Sheet ID</label><input class="fi" id="cfg-id" value="15hEIIX9oeOheBH24DUm07xFSAsm3uHstRqq3KirY1bU"/></div><button class="btn btn-accent" onclick="saveCfg()">Save & Reload</button><div class="cfg-note"><strong>Setup:</strong> Sheet → <strong>File → Share → Publish to web</strong> → Entire Document → Publish.</div></div>
       <div class="cfg-card"><div class="cfg-title">Tab Names</div><div class="cfg-sub">Must match your sheet tabs exactly.</div><div class="fg"><label class="fl">Internal Team</label><input class="fi" id="cfg-int" value="Internal Team"/></div><div class="fg"><label class="fl">SkyU Visits</label><input class="fi" id="cfg-sk" value="SkyU Visits"/></div><div class="fg"><label class="fl">Advantage Store Visits</label><input class="fi" id="cfg-adv" value="Advantage - Store Visits"/></div><div class="fg"><label class="fl">Advantage Campaign Summaries</label><input class="fi" id="cfg-sum" value="Advantage - Campaign Summaries"/></div><button class="btn btn-accent" onclick="saveCfg()">Save & Reload</button></div>
     </div>
   </div>
 </div>
 </div>
-
-<div class="modal-bg" id="lock-modal" style="display:none"><div class="modal"><div class="modal-ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="10" width="14" height="9.5" rx="2" stroke="#fff" stroke-width="1.7"/><path d="M6.5 10V6.5a4.5 4.5 0 019 0V10" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="modal-title">Admin Access</div><div class="modal-sub">Enter your password to manage dashboard settings.</div><input class="modal-input" type="password" id="lock-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkLock()"/><div class="modal-err" id="lock-err">Incorrect password.</div><div class="modal-btns"><button class="btn btn-ghost" onclick="closeLock()">Cancel</button><button class="btn btn-accent" onclick="checkLock()">Unlock</button></div></div></div>
+<div class="modal-bg" id="lock-modal" style="display:none"><div class="modal"><div class="modal-ico"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="10" width="14" height="9.5" rx="2" stroke="#fff" stroke-width="1.7"/><path d="M6.5 10V6.5a4.5 4.5 0 019 0V10" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="modal-title">Admin Access</div><div class="modal-sub">Enter your password to manage settings.</div><input class="modal-input" type="password" id="lock-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkLock()"/><div class="modal-err" id="lock-err">Incorrect password.</div><div class="modal-btns"><button class="btn btn-ghost" onclick="closeLock()">Cancel</button><button class="btn btn-accent" onclick="checkLock()">Unlock</button></div></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
-let D={int:[],sk:[],adv:[],sum:[]};
-let cfgNavEl=null;const PASS='123456';let unlocked=false;
-let dateFrom=null,dateTo=null,activePreset='all';
-let posFilter='';
+let D={int:[],sk:[],adv:[],sum:[]};let cfgNavEl=null;const PASS='123456';let unlocked=false;
+let dateFrom=null,dateTo=null,activePreset='all';let posFilter='';let _pageState={},_paginators={};
 
 function openMobileNav(){document.getElementById('sidebar').classList.add('mobile-open');document.getElementById('m-overlay').classList.add('show');}
 function closeMobileNav(){document.getElementById('sidebar').classList.remove('mobile-open');document.getElementById('m-overlay').classList.remove('show');}
@@ -419,269 +392,227 @@ function parseCSV(txt){const lines=txt.trim().split('\n');if(lines.length<2)retu
 function parseRow(row){const res=[],re=/("(?:[^"]|"")*"|[^,]*),?/g;let m;while((m=re.exec(row))!==null){if(m.index===re.lastIndex){re.lastIndex++;break}if(m[1]===undefined)break;res.push(m[1].startsWith('"')?m[1].slice(1,-1).replace(/""/g,'"'):m[1]);}return res;}
 
 async function loadAll(){document.getElementById('sync').textContent='Syncing…';const[int,sk,adv,sum]=await Promise.all([fetchTab(tabInt()),fetchTab(tabSk()),fetchTab(tabAdv()),fetchTab(tabSum())]);
-  // dedupe advantage store visits (each row appears twice in sheet)
-  const seen=new Set();D.adv=[];
-  adv.forEach(r=>{const k=(r['Chain']||'')+(r['Store #']||'')+(r['Visit Date']||'')+(r['Recap Date']||'');if(!seen.has(k)){seen.add(k);D.adv.push(r);}});
+  const seen=new Set();D.adv=[];adv.forEach(r=>{const k=(r['Chain']||'')+(r['Store #']||'')+(r['Visit Date']||'')+(r['Recap Date']||'');if(!seen.has(k)){seen.add(k);D.adv.push(r);}});
   D.int=int;D.sk=sk;D.sum=sum;
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});document.getElementById('sync').textContent='Last sync '+t;document.getElementById('sb-sync').textContent='Synced '+t;
   buildDateBars();renderAll();}
-function renderAll(){renderOverview();renderActivity();renderInternal();renderSkyu();renderAdvantage();}
+function renderAll(){renderCommand();renderCoverage();renderExecution();renderIssues();renderInternal();renderSkyu();renderAdvantage();}
 
 // DATE
 function inRange(s){if(activePreset==='all'&&!dateFrom&&!dateTo)return true;const d=new Date(s);if(isNaN(d))return false;if(dateFrom&&d<dateFrom)return false;if(dateTo){const e=new Date(dateTo);e.setHours(23,59,59);if(d>e)return false;}return true;}
 function setPreset(p){activePreset=p;const n=new Date();if(p==='all'){dateFrom=null;dateTo=null;}else if(p==='week'){dateFrom=new Date(n);dateFrom.setDate(n.getDate()-n.getDay()+1);dateFrom.setHours(0,0,0);dateTo=n;}else if(p==='month'){dateFrom=new Date(n.getFullYear(),n.getMonth(),1);dateTo=n;}else if(p==='quarter'){const q=Math.floor(n.getMonth()/3);dateFrom=new Date(n.getFullYear(),q*3,1);dateTo=n;}buildDateBars();renderAll();}
 function setCustom(w,v){if(!v)return;activePreset='custom';if(w==='from')dateFrom=new Date(v);else dateTo=new Date(v);buildDateBars();renderAll();}
-function buildDateBars(){const P=[['week','This Week'],['month','This Month'],['quarter','This Quarter'],['all','All Time']];const f=dateFrom?dateFrom.toISOString().slice(0,10):'';const t=dateTo?dateTo.toISOString().slice(0,10):'';const html=`<span class="datebar-label">Date</span>`+P.map(([v,l])=>`<button class="preset ${activePreset===v?'active':''}" onclick="setPreset('${v}')">${l}</button>`).join('')+`<span class="date-sep"></span><input type="date" class="date-input" value="${f}" onchange="setCustom('from',this.value)"><span class="date-arrow">→</span><input type="date" class="date-input" value="${t}" onchange="setCustom('to',this.value)">`;['db-overview','db-activity','db-internal','db-skyu','db-advantage'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});}
+function buildDateBars(){const P=[['week','This Week'],['month','This Month'],['quarter','This Quarter'],['all','All Time']];const f=dateFrom?dateFrom.toISOString().slice(0,10):'';const t=dateTo?dateTo.toISOString().slice(0,10):'';const html=`<span class="datebar-label">Date</span>`+P.map(([v,l])=>`<button class="preset ${activePreset===v?'active':''}" onclick="setPreset('${v}')">${l}</button>`).join('')+`<span class="date-sep"></span><input type="date" class="date-input" value="${f}" onchange="setCustom('from',this.value)"><span class="date-arrow">→</span><input type="date" class="date-input" value="${t}" onchange="setCustom('to',this.value)">`;['db-main','db-coverage','db-execution','db-issues','db-internal','db-skyu','db-advantage'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=html;});}
 
 function fInt(){return D.int.filter(r=>inRange(r['Timestamp']));}
 function fSk(){return D.sk.filter(r=>inRange(r['Email Date']));}
 function fAdv(){return D.adv.filter(r=>inRange(r['Visit Date']||r['Recap Date']));}
 
 // HELPERS
-function city(r){const s=r['Source Email Subject']||r['Subject']||'';const m=s.match(/Circle K @ (.+?) task/i);return m?m[1].trim():(r['Address']||'').split(',')[1]||'Unknown';}
+function city(r){const s=r['Source Email Subject']||r['Subject']||'';const m=s.match(/Circle K @ (.+?) task/i);return m?m[1].trim():'Unknown';}
 function driveThumb(url){if(!url)return'';const m=url.match(/[-\w]{25,}/);return m?`https://drive.google.com/thumbnail?id=${m[0]}&sz=w400`:'';}
 function driveLink(row){for(const v of Object.values(row))if((v||'').includes('drive.google.com'))return v;return'';}
-let _pageState={};
-function paginate(items,key,renderFn,containerId,perPage){
-  perPage=perPage||8;
-  const page=_pageState[key]||1;
-  const totalPages=Math.ceil(items.length/perPage)||1;
-  const start=(page-1)*perPage;
-  const slice=items.slice(start,start+perPage);
-  const body=slice.map(renderFn).join('');
-  let controls='';
-  if(totalPages>1){
-    let nums='';
-    for(let p=1;p<=totalPages;p++){
-      if(p===1||p===totalPages||Math.abs(p-page)<=1){nums+=`<button class="pg-num ${p===page?'active':''}" onclick="setPage('${key}',${p},'${containerId}')">${p}</button>`;}
-      else if(Math.abs(p-page)===2){nums+=`<span class="pg-dots">…</span>`;}
-    }
-    controls=`<div class="pager"><button class="pg-btn" ${page===1?'disabled':''} onclick="setPage('${key}',${page-1},'${containerId}')">← Prev</button>${nums}<button class="pg-btn" ${page===totalPages?'disabled':''} onclick="setPage('${key}',${page+1},'${containerId}')">Next →</button></div>`;
-  }
-  return body+controls;
-}
-function setPage(key,p,containerId){_pageState[key]=p;_paginators[key]&&_paginators[key]();window.scrollTo({top:0,behavior:'smooth'});}
-let _paginators={};
-function advStoreBlock(r,titleLine,metaLine){
-  const raw=r['Photos']||'';
-  const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);
-  const photos=urls.length?`<div class="store-photos">`+urls.map(u=>`<a href="${u}" target="_blank"><img class="store-photo" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`:'';
-  return `<div class="store-block"><div class="store-block-hd"><div class="store-block-name">${titleLine}</div><div class="store-block-meta">${metaLine}</div></div>${photos||'<div class="store-nophoto">No photos available</div>'}</div>`;
-}
-function advPhotos(r){const raw=r['Photos']||'';if(!raw)return'';const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);if(!urls.length)return'';return `<div class="photo-strip">`+urls.map(u=>`<a href="${u}" target="_blank" onclick="event.stopPropagation()"><img class="strip-thumb" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')+`</div>`;}
-function posTypes(r){const raw=((r['Point of Sale Placed']||'')+' '+(r['Whether you brought in any point-of-sale materials']||'')).toLowerCase();const types=[];if(raw.includes('wobbler'))types.push('Wobblers');if(raw.includes('sample'))types.push('Samples');if(raw.includes('counter')||raw.includes('rack'))types.push('Counter Rack');if(raw.includes('cling')||raw.includes('window'))types.push('Window Cling');return types;}
+function noteOf(r){return r['Next steps / notes (e.g., if decision maker was not available, who did you meet and when to follow up? did they place an order and if no why? will they order directly via B2B? if not directly, which distributors do they use? will they take a checkstand display?)']||r['Account serviced']||'';}
+function posTypes(r){const raw=((r['Point of Sale Placed']||'')+' '+(r['Whether you brought in any point-of-sale materials']||'')).toLowerCase();const t=[];if(raw.includes('wobbler'))t.push('Wobblers');if(raw.includes('sample'))t.push('Samples');if(raw.includes('counter')||raw.includes('rack'))t.push('Counter Rack');if(raw.includes('cling')||raw.includes('window'))t.push('Window Cling');return t;}
 function fmtDate(s,y='numeric'){const d=new Date(s);return isNaN(d)?'—':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:y});}
 function set(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
-function isFlagged(notes){return /out of stock|oos|no inventory|no backstock|reorder|no pricing|missing|out-of-stock/i.test(notes||'');}
+function isFlagged(n){return /out of stock|oos|no inventory|no backstock|reorder|no pricing|missing|out-of-stock|low inventory/i.test(n||'');}
+function advStoreBlock(r,title,meta){const raw=r['Photos']||'';const urls=raw.split('|').map(u=>u.trim()).filter(Boolean);const photos=urls.length?`<div class="store-photos">${urls.map(u=>`<a href="${u}" target="_blank"><img class="store-photo" src="${u}" loading="lazy" onerror="this.parentElement.style.display='none'"></a>`).join('')}</div>`:'';return `<div class="store-block"><div class="store-block-name">${title}</div><div class="store-block-meta">${meta}</div>${photos}</div>`;}
+function paginate(items,key,renderFn,cid,pp){pp=pp||8;const p=_pageState[key]||1;const tp=Math.ceil(items.length/pp)||1;const sl=items.slice((p-1)*pp,(p-1)*pp+pp);const body=sl.map(renderFn).join('');let ctrl='';if(tp>1){let nums='';for(let i=1;i<=tp;i++){if(i===1||i===tp||Math.abs(i-p)<=1)nums+=`<button class="pg-num ${i===p?'active':''}" onclick="setPage('${key}',${i})">${i}</button>`;else if(Math.abs(i-p)===2)nums+=`<span class="pg-dots">…</span>`;}ctrl=`<div class="pager"><button class="pg-btn" ${p===1?'disabled':''} onclick="setPage('${key}',${p-1})">← Prev</button>${nums}<button class="pg-btn" ${p===tp?'disabled':''} onclick="setPage('${key}',${p+1})">Next →</button></div>`;}return body+ctrl;}
+function setPage(key,p){_pageState[key]=p;_paginators[key]&&_paginators[key]();window.scrollTo({top:0,behavior:'smooth'});}
 
-// OVERVIEW
-function renderOverview(){
-  const I=fInt(),S=fSk(),A=fAdv();
-  set('ov-int',I.length);set('ov-sk',S.length);set('ov-adv',A.length);
-  const newA=I.filter(r=>(r['New or Existing']||'').toLowerCase().includes('new')).length;
+// ──── COMMAND CENTER ────
+function renderCommand(){
+  const I=fInt(),S=fSk(),A=fAdv(),tot=I.length+S.length+A.length;
+  const locs=new Set();I.forEach(r=>{const c=r['Store Location (City)'];if(c)locs.add('i'+c.toLowerCase().trim())});S.forEach(r=>locs.add('s'+city(r).toLowerCase()));A.forEach(r=>{if(r['City'])locs.add('a'+(r['Chain']+r['City']).toLowerCase())});
+  const retailers=new Set();I.forEach(r=>{const a=r['Account serviced'];if(a)retailers.add(a.toLowerCase())});A.forEach(r=>{if(r['Chain'])retailers.add(r['Chain'].toLowerCase())});retailers.add('circle k');
   const posCount=I.filter(r=>posTypes(r).length>0).length;
-  set('ov-int-new',newA);set('ov-int-pos',posCount);
-  const cities=new Set(S.map(r=>city(r)).filter(Boolean));set('ov-sk-cities',cities.size);
-  const flagged=S.filter(r=>isFlagged(r['Comments / Findings'])).length;set('ov-sk-issues',flagged);
-  let cov='—',advPos='—';if(D.sum.length){const s=D.sum[0];const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1;cov=Math.round(v/t*100)+'%';advPos=s['POS Placed (Neck Tags/Wobblers)']||'—';}
-  set('ov-adv-cov',cov);set('ov-adv-pos',advPos);
-  set('h-total',I.length+S.length+A.length);
-  const allLoc=new Set();I.forEach(r=>{const c=r['Store Location (City)'];if(c)allLoc.add('i'+c.toLowerCase().trim())});S.forEach(r=>allLoc.add('s'+city(r).toLowerCase()));A.forEach(r=>{if(r['City'])allLoc.add('a'+(r['Chain']+r['City']).toLowerCase())});
-  set('h-loc',allLoc.size);set('h-pos',posCount+(parseInt(advPos)||0));
-  // findings
-  const finds=[];S.forEach(r=>{if(isFlagged(r['Comments / Findings']))finds.push({loc:'Circle K · '+city(r),note:r['Comments / Findings'],src:'SkyU',key:city(r)});});
-  I.forEach(r=>{const nt=noteOf(r);if(isFlagged(nt))finds.push({loc:r['Store Location (City)']||'Unlabeled location',note:nt,src:'Internal',key:(r['Store Location (City)']||'').trim()});});
-  const fc=document.getElementById('ov-findings');
-  if(finds.length){fc.innerHTML=`<div class="findings-card"><div class="findings-hd"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 14h14L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r=".8" fill="currentColor"/></svg>Flagged Findings (${finds.length})</div>${finds.slice(0,8).map(f=>`<div class="finding-item" onclick="goToLoc('${f.src}','${(f.key||'').replace(/'/g,"")}')"><span class="finding-loc">${f.loc}:</span> ${(f.note||'').slice(0,140)}${(f.note||'').length>140?'…':''} <span class="finding-go">Open →</span></div>`).join('')}</div>`;}else fc.innerHTML='';
-  renderFeed(buildFeed().slice(0,8),'ov-feed');
+  const newA=I.filter(r=>(r['New or Existing']||'').toLowerCase().includes('new')).length;
+  // issues across all
+  const allIssues=[];
+  S.forEach(r=>{if(isFlagged(r['Comments / Findings']))allIssues.push({src:'SkyU',loc:'Circle K · '+city(r),note:r['Comments / Findings'],key:city(r)});});
+  I.forEach(r=>{const n=noteOf(r);if(isFlagged(n))allIssues.push({src:'Internal',loc:(r['Store Location (City)']||'').trim()||'Unlabeled',note:n,key:(r['Store Location (City)']||'').trim()});});
+  set('h-total',tot);set('h-loc',locs.size);set('h-retail',retailers.size);set('h-pos',posCount);set('h-new',newA);set('h-issues',allIssues.length);
+  // action cards
+  const oos=allIssues.filter(i=>/out of stock|oos/i.test(i.note)).length;
+  const lowInv=allIssues.filter(i=>/no inventory|low inventory|no backstock/i.test(i.note)).length;
+  const reorder=allIssues.filter(i=>/reorder/i.test(i.note)).length;
+  const other=allIssues.length-oos-lowInv-reorder;
+  document.getElementById('cmd-actions').innerHTML=[
+    {n:oos,l:'Out of Stock',s:'Needs immediate restocking',c:'var(--warn)'},
+    {n:lowInv,l:'Low Inventory',s:'Running low, may need reorder',c:'#d97706'},
+    {n:reorder,l:'Reorder Requests',s:'Store requested more product',c:'var(--skyu)'},
+    {n:other>0?other:0,l:'Other Findings',s:'Pricing, display, misc issues',c:'var(--muted)'}
+  ].map(a=>`<div class="action-card" style="--ac:${a.c}" onclick="nav('issues',document.querySelector('[data-nav=issues]'))"><div class="ac-num">${a.n}</div><div class="ac-label">${a.l}</div><div class="ac-sub">${a.s}</div></div>`).join('');
+  // feed — meaningful events only
+  const feed=[];
+  I.forEach(r=>{const n=noteOf(r);const pos=posTypes(r);if(n||pos.length||isFlagged(n))feed.push({src:'Internal',store:r['Store Location (City)']||'—',date:r['Timestamp']||'',notes:n,flag:isFlagged(n),key:(r['Store Location (City)']||'').trim()});});
+  S.forEach(r=>{const c=city(r);const n=r['Comments / Findings']||'';if(n)feed.push({src:'SkyU',store:'Circle K · '+c,date:r['Email Date']||'',notes:n,flag:isFlagged(n),key:c});});
+  A.forEach(r=>feed.push({src:'Advantage',store:(r['Chain']||'')+' #'+(r['Store #']||''),date:r['Visit Date']||r['Recap Date']||'',notes:[r['City'],r['State']].filter(Boolean).join(', '),flag:false,key:r['Chain']||''}));
+  feed.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  renderFeed(feed.slice(0,12),'cmd-feed');
 }
+function renderFeed(items,id){const el=document.getElementById(id);if(!items.length){el.innerHTML='<div class="empty">No activity in this range</div>';return;}const C={Internal:'var(--internal)',SkyU:'var(--skyu)',Advantage:'var(--advantage)'},B={Internal:'var(--internal-bg)',SkyU:'var(--skyu-bg)',Advantage:'var(--advantage-bg)'},AB={Internal:'INT',SkyU:'SKY',Advantage:'ADV'};
+  el.innerHTML=items.map(i=>{const c=C[i.src],b=B[i.src];const flag=i.flag?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:'';return `<div class="feed-item" onclick="goToLoc('${i.src}','${(i.key||'').replace(/'/g,"")}')"><div class="feed-ico" style="background:${b};color:${c}">${AB[i.src]}</div><div class="feed-body"><div class="feed-store">${i.store}</div><div class="feed-meta"><span class="pill" style="background:${b};color:${c}">${i.src}</span>${flag}</div>${i.notes?`<div class="feed-notes">${i.notes}</div>`:''}</div><div class="feed-time">${fmtDate(i.date,'2-digit')}</div></div>`;}).join('');}
+function goToLoc(src,key){if(src==='Internal')openInternalLoc(key);else if(src==='SkyU')openSkyuLoc(key);else nav('advantage',document.querySelector('[data-nav=advantage]'));}
 
-// FEED
-function buildFeed(){const items=[];
-  fInt().forEach(r=>items.push({src:'Internal',store:r['Store Location (City)']||'—',date:r['Timestamp']||'',notes:noteOf(r),locKey:r['Store Location (City)']}));
-  fSk().forEach(r=>items.push({src:'SkyU',store:'Circle K · '+city(r),date:r['Email Date']||'',notes:r['Comments / Findings']||'',locKey:city(r)}));
-  fAdv().forEach(r=>items.push({src:'Advantage',store:(r['Chain']||'')+' #'+(r['Store #']||''),date:r['Visit Date']||r['Recap Date']||'',notes:[r['City'],r['State']].filter(Boolean).join(', '),locKey:r['Chain']}));
-  return items.sort((a,b)=>new Date(b.date)-new Date(a.date));}
-function noteOf(r){return r['Next steps / notes (e.g., if decision maker was not available, who did you meet and when to follow up? did they place an order and if no why? will they order directly via B2B? if not directly, which distributors do they use? will they take a checkstand display?)']||r['Account serviced']||'';}
-function renderActivity(){const srch=(document.getElementById('act-srch')?.value||'').toLowerCase();const src=document.getElementById('act-src')?.value||'';let it=buildFeed();if(src)it=it.filter(i=>i.src===src);if(srch)it=it.filter(i=>(i.store+i.notes).toLowerCase().includes(srch));set('act-count',it.length+' visits');renderFeed(it,'act-feed');}
-function renderFeed(items,id){const el=document.getElementById(id);if(!items.length){el.innerHTML='<div class="empty">No visits in this range</div>';return;}const C={Internal:'var(--internal)',SkyU:'var(--skyu)',Advantage:'var(--advantage)'},B={Internal:'var(--internal-bg)',SkyU:'var(--skyu-bg)',Advantage:'var(--advantage-bg)'},AB={Internal:'INT',SkyU:'SKY',Advantage:'ADV'};
-  el.innerHTML=items.map(i=>{const c=C[i.src],b=B[i.src];const flag=isFlagged(i.notes)?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:'';return `<div class="feed-item" onclick="goToLoc('${i.src}','${(i.locKey||'').replace(/'/g,"")}')"><div class="feed-ico" style="background:${b};color:${c}">${AB[i.src]}</div><div class="feed-body"><div class="feed-store">${i.store}</div><div class="feed-meta"><span class="pill" style="background:${b};color:${c}">${i.src}</span>${flag}</div>${i.notes?`<div class="feed-notes">${i.notes}</div>`:''}</div><div class="feed-time">${fmtDate(i.date,'2-digit')}</div></div>`;}).join('');}
-function goToLoc(src,key){if(src==='Internal'){openInternalLoc(key);}else if(src==='SkyU'){openSkyuLoc(key);}else nav('advantage',document.querySelector('[data-nav=advantage]'));}
-
-// INTERNAL
-function renderInternal(){
-  const I=fInt();
-  const cats=[['Wobblers','var(--internal)'],['Samples','var(--skyu)'],['Counter Rack','var(--advantage)'],['Window Cling','var(--good)']];
-  const counts={};cats.forEach(([c])=>counts[c]=0);
-  I.forEach(r=>posTypes(r).forEach(t=>{if(counts[t]!==undefined)counts[t]++}));
-  document.getElementById('int-pos-grid').innerHTML=cats.map(([c,col])=>`<div class="pos-card ${posFilter===c?'active':''}" style="--pc:${col}" onclick="togglePos('${c}')"><div class="pos-num">${counts[c]}</div><div class="pos-lbl">${c}</div><div class="pos-sub">locations placed</div></div>`).join('');
-  // group by location
-  const srch=(document.getElementById('int-srch')?.value||'').toLowerCase();
-  const tp=document.getElementById('int-type')?.value||'';
-  const locs={};
-  I.forEach(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';if(!locs[c])locs[c]=[];locs[c].push(r);});
-  let entries=Object.entries(locs);
-  if(posFilter)entries=entries.filter(([loc,rows])=>rows.some(r=>posTypes(r).includes(posFilter)));
-  if(tp)entries=entries.filter(([loc,rows])=>rows.some(r=>(r['New or Existing']||'').includes(tp)));
-  if(srch)entries=entries.filter(([loc])=>loc.toLowerCase().includes(srch));
-  entries.sort((a,b)=>b[1].length-a[1].length);
-  const max=entries[0]?.[1].length||1;
-  set('int-count',entries.length+' locations');
-  const el=document.getElementById('int-list');
-  if(!entries.length){el.innerHTML='<div class="empty">No locations in this range</div>';return;}
-  el.innerHTML=entries.map(([loc,rows],i)=>{const last=rows.map(r=>new Date(r['Timestamp'])).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];const lastStr=last?fmtDate(last,'2-digit'):'—';return `<div class="loc-row" onclick="openInternalLoc('${loc.replace(/'/g,"")}')"><div class="loc-rank">${i+1}</div><div class="loc-main"><div class="loc-name">${loc}</div><div class="loc-meta">Last visit ${lastStr}</div></div><div class="loc-bar-wrap"><div class="loc-bar"><div class="loc-bar-fill" style="width:${rows.length/max*100}%;background:var(--internal)"></div></div></div><div class="loc-count"><div class="loc-count-num">${rows.length}</div><div class="loc-count-lbl">visits</div></div><svg class="loc-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}).join('');
-}
-function togglePos(c){posFilter=posFilter===c?'':c;renderInternal();}
-function openInternalLoc(loc){
-  const rows=D.int.filter(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';return c===loc;}).sort((a,b)=>new Date(b['Timestamp'])-new Date(a['Timestamp']));
-  const newest=rows[0]||{};
-  const total=rows.length;
-  const posSet=new Set();rows.forEach(r=>posTypes(r).forEach(t=>posSet.add(t)));
-  document.getElementById('int-detail').innerHTML=`
-    <div class="detail-hd"><div class="detail-name">${loc}</div><div class="detail-meta">Internal Team · ${newest['New or Existing']||''} account</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${total}</div><div class="detail-stat-lbl">Total Visits</div></div><div><div class="detail-stat-num">${posSet.size}</div><div class="detail-stat-lbl">POS Types</div></div></div></div>`+
-    rows.map(r=>{const notes=noteOf(r);const ph=driveLink(r);const thumb=driveThumb(ph);const pos=posTypes(r);const isNew=(r['New or Existing']||'').toLowerCase().includes('new');const dm=r['Was the decision maker available?']||'';const skus=r['How many SKUs are currently active in this account']||'';const pods=r['Whether you sold in any new PODs']||'';const acct=r['Account serviced']||'';const flag=isFlagged(notes);
-      return `<div class="visit-block"><div class="visit-top"><div class="visit-date"><div class="visit-date-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>${fmtDate(r['Timestamp'])}</div><div class="visit-badges"><span class="pill" style="background:${isNew?'var(--skyu-bg)':'var(--good-bg)'};color:${isNew?'var(--skyu)':'var(--good)'}">${isNew?'New':'Existing'}</span>${pos.map(p=>`<span class="pill" style="background:var(--internal-bg);color:var(--internal)">${p}</span>`).join('')}${flag?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:''}</div></div>
-      ${notes?`<div class="visit-notes">${notes}</div>`:'<div class="visit-notes" style="color:var(--subtle)">No notes recorded</div>'}
-      <div class="visit-grid">${acct?`<div class="vg-item"><div class="vg-lbl">Account Serviced</div><div class="vg-val">${acct}</div></div>`:''}${dm?`<div class="vg-item"><div class="vg-lbl">Decision Maker Avail</div><div class="vg-val">${dm}</div></div>`:''}${skus?`<div class="vg-item"><div class="vg-lbl">Active SKUs</div><div class="vg-val">${skus}</div></div>`:''}${pods?`<div class="vg-item"><div class="vg-lbl">New PODs Sold</div><div class="vg-val">${pods}</div></div>`:''}</div>
-      ${thumb?`<div class="visit-photo"><img class="photo-thumb" src="${thumb}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"><a href="${ph}" target="_blank" class="photo-link" style="display:none">↗ Open photo in Drive</a><br><a href="${ph}" target="_blank" class="photo-link">↗ Open full size</a></div>`:''}
-      </div>`;}).join('');
-  nav('internal-detail',null);
-}
-
-// SKYU
-function renderSkyu(){
-  const S=fSk();
-  const srch=(document.getElementById('sk-srch')?.value||'').toLowerCase();
-  const locs={};S.forEach(r=>{const c=city(r);if(!locs[c])locs[c]=[];locs[c].push(r);});
-  let entries=Object.entries(locs);
-  if(srch)entries=entries.filter(([c])=>c.toLowerCase().includes(srch));
-  entries.sort((a,b)=>b[1].length-a[1].length);
-  const max=entries[0]?.[1].length||1;
-  set('sk-count',entries.length+' locations');
-  const el=document.getElementById('sk-list');
-  if(!entries.length){el.innerHTML='<div class="empty">No locations in this range</div>';return;}
-  el.innerHTML=entries.map(([loc,rows],i)=>{const last=rows.map(r=>new Date(r['Email Date'])).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];const flagged=rows.filter(r=>isFlagged(r['Comments / Findings'])).length;return `<div class="loc-row" onclick="openSkyuLoc('${loc.replace(/'/g,"")}')"><div class="loc-rank">${i+1}</div><div class="loc-main"><div class="loc-name">Circle K · ${loc}</div><div class="loc-meta">Last task ${last?fmtDate(last,'2-digit'):'—'}${flagged?` · <span style="color:var(--warn);font-weight:700">${flagged} flagged</span>`:''}</div></div><div class="loc-bar-wrap"><div class="loc-bar"><div class="loc-bar-fill" style="width:${rows.length/max*100}%;background:var(--skyu)"></div></div></div><div class="loc-count"><div class="loc-count-num">${rows.length}</div><div class="loc-count-lbl">tasks</div></div><svg class="loc-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}).join('');
-}
-function openSkyuLoc(loc){
-  const rows=D.sk.filter(r=>city(r)===loc).sort((a,b)=>new Date(b['Email Date'])-new Date(a['Email Date']));
-  const total=rows.length;const addr=rows[0]?.['Address']||'';const flagged=rows.filter(r=>isFlagged(r['Comments / Findings'])).length;
-  document.getElementById('sk-detail').innerHTML=`
-    <div class="detail-hd"><div class="detail-name">Circle K · ${loc}</div><div class="detail-meta">${addr}</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${total}</div><div class="detail-stat-lbl">Tasks Completed</div></div>${flagged?`<div><div class="detail-stat-num">${flagged}</div><div class="detail-stat-lbl">Flagged</div></div>`:''}</div></div>`+
-    rows.map(r=>{const notes=r['Comments / Findings']||'';const portal=r['Portal Link']||'';const flag=isFlagged(notes);
-      return `<div class="visit-block"><div class="visit-top"><div class="visit-date"><div class="visit-date-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>${fmtDate(r['Email Date'])}</div><div class="visit-badges">${flag?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:`<span class="pill" style="background:var(--good-bg);color:var(--good)">✓ Complete</span>`}</div></div>
-      ${notes?`<div class="visit-notes">${notes}</div>`:'<div class="visit-notes" style="color:var(--subtle)">No comments recorded</div>'}
-      <div class="visit-grid">${r['Address']?`<div class="vg-item"><div class="vg-lbl">Address</div><div class="vg-val" style="font-size:.78rem">${r['Address']}</div></div>`:''}<div class="vg-item"><div class="vg-lbl">Task ID</div><div class="vg-val" style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">${r['Task ID']||'—'}</div></div></div>
-      ${portal?`<div class="visit-photo"><a href="${portal}" target="_blank" class="chip" style="border-color:var(--skyu);color:var(--skyu)">↗ View Photos in SkyU Portal</a></div>`:''}
-      </div>`;}).join('');
-  nav('skyu-detail',null);
-}
-
-// ADVANTAGE
-function renderAdvantage(){
-  const A=fAdv();
-  // Show ALL campaign recaps as cards (not just the latest)
-  const el=document.getElementById('adv-hero');
-  if(D.sum.length){
-    el.innerHTML='<div class="camp-cards">'+D.sum.map(s=>{
-      const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1;
-      const cov=Math.round(v/t*100);const pos=s['POS Placed (Neck Tags/Wobblers)']||'0';
-      const lnk=s['Drive File Link'];const recap=s['Recap Date']||'';
-      // count stores actually logged for this recap
-      const storeCount=A.filter(r=>r['Recap Date']===recap).length;
-      return `<div class="camp-rcard">
-        <div class="camp-rcard-top">
-          <div><div class="camp-recap-lbl">Recap</div><div class="camp-recap-date">${recap}</div></div>
-          <div class="camp-cov-badge">${cov}%</div>
-        </div>
-        <div class="camp-rcard-bar"><div class="camp-rcard-fill" style="width:${Math.min(100,cov)}%"></div></div>
-        <div class="camp-rcard-stats">
-          <div><div class="crs-num">${v}/${t}</div><div class="crs-lbl">Stores Visited</div></div>
-          <div><div class="crs-num">${pos}</div><div class="crs-lbl">POS Placed</div></div>
-          <div><div class="crs-num">${storeCount}</div><div class="crs-lbl">Logged</div></div>
-        </div>
-        <div class="camp-rcard-actions">
-          <button class="chip" onclick="openAdvRecap('${recap.replace(/'/g,"")}')">View ${storeCount} stores →</button>
-          ${lnk?`<a href="${lnk}" target="_blank" class="chip" style="border-color:var(--advantage);color:var(--advantage)">↗ Report</a>`:''}
-        </div>
-      </div>`;
-    }).join('')+'</div>';
-  } else el.innerHTML='<div class="card"><div class="empty">No campaign data yet</div></div>';
-  // retailers (all recaps in range)
-  const ch={};A.forEach(r=>{const c=r['Chain']||'';if(c)ch[c]=(ch[c]||0)+1});const cs=Object.entries(ch).sort((a,b)=>b[1]-a[1]);const cmax=cs[0]?.[1]||1;
-  document.getElementById('adv-retailers').innerHTML=cs.length?cs.map(([c,n])=>`<div class="bar-row" onclick="openAdvChain('${c.replace(/'/g,"")}')"><div class="bar-name">${c}</div><div class="bar-track"><div class="bar-fill" style="width:${n/cmax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No visits in this range</div>';
-  // states
-  const st={};A.forEach(r=>{const s=r['State']||'';if(s)st[s]=(st[s]||0)+1});const ss=Object.entries(st).sort((a,b)=>b[1]-a[1]);const smax=ss[0]?.[1]||1;
-  document.getElementById('adv-states').innerHTML=ss.length?ss.map(([s,n])=>`<div class="bar-row" onclick="openAdvState('${s}')"><div class="bar-name">${STATE_NAMES[s]||s}</div><div class="bar-track"><div class="bar-fill" style="width:${n/smax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No data</div>';
-  renderStateMap(st);
-}
+// ──── COVERAGE ────
 const STATE_NAMES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
 const NAME_TO_ABBR={};Object.entries(STATE_NAMES).forEach(([a,n])=>NAME_TO_ABBR[n]=a);
 let _usTopo=null;
-function renderStateMap(stateCounts){
-  const host=document.getElementById('adv-map');
-  if(!host)return;
-  if(typeof d3==='undefined'||typeof topojson==='undefined'){host.innerHTML='<div class="empty">Map unavailable — see the list below.</div>';return;}
-  const draw=()=>{
-    const counts=stateCounts||{};
-    const max=Math.max(1,...Object.values(counts));
-    const W=host.clientWidth||440,H=Math.max(220,W*0.6);
-    host.innerHTML='';
-    const svg=d3.select(host).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
-    const states=topojson.feature(_usTopo,_usTopo.objects.states).features;
-    const proj=d3.geoAlbersUsa().fitSize([W,H],{type:'FeatureCollection',features:states});
-    const path=d3.geoPath(proj);
-    const col=d3.scaleLinear().domain([0,max]).range(['#eef0f5','#c89766']);
-    const tip=d3.select(host).append('div').style('position','absolute').style('pointer-events','none').style('background','#1e293b').style('color','#fff').style('padding','6px 10px').style('border-radius','8px').style('font','600 12px Hanken Grotesk,sans-serif').style('opacity',0).style('z-index',5).style('white-space','nowrap');
-    host.style.position='relative';
-    svg.selectAll('path').data(states).join('path').attr('d',path)
-      .attr('fill',d=>{const ab=NAME_TO_ABBR[d.properties.name];const c=counts[ab]||0;return c>0?col(c):'#f4f6fa';})
-      .attr('stroke','#fff').attr('stroke-width',1)
-      .style('cursor',d=>{const ab=NAME_TO_ABBR[d.properties.name];return counts[ab]?'pointer':'default';})
-      .on('mousemove',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];const c=counts[ab]||0;const r=host.getBoundingClientRect();tip.style('opacity',1).html(`${d.properties.name}: <b>${c}</b> visit${c!==1?'s':''}`).style('left',(e.clientX-r.left+12)+'px').style('top',(e.clientY-r.top-8)+'px');})
-      .on('mouseleave',()=>tip.style('opacity',0))
-      .on('click',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];if(counts[ab])openAdvState(ab);});
-  };
-  if(_usTopo){draw();return;}
-  fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r=>r.json()).then(j=>{_usTopo=j;draw();}).catch(()=>{host.innerHTML='<div class="empty">Map unavailable — see the list below.</div>';});
+function renderCoverage(){
+  const A=fAdv();
+  // retailer across ALL sources
+  const ch={};fInt().forEach(r=>{const a=r['Account serviced'];if(a){ch[a]=(ch[a]||0)+1}});A.forEach(r=>{const c=r['Chain']||'';if(c)ch[c]=(ch[c]||0)+1});
+  const skCities={};fSk().forEach(r=>{const c=city(r);skCities[c]=(skCities[c]||0)+1});
+  if(Object.keys(skCities).length)ch['Circle K (SkyU)']=(ch['Circle K (SkyU)']||0)+fSk().length;
+  const cs=Object.entries(ch).sort((a,b)=>b[1]-a[1]);const cmax=cs[0]?.[1]||1;
+  document.getElementById('cov-retailers').innerHTML=cs.length?cs.map(([c,n])=>`<div class="bar-row" onclick="openCovRetailer('${c.replace(/'/g,"")}')"><div class="bar-name">${c}</div><div class="bar-track"><div class="bar-fill" style="width:${n/cmax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No data</div>';
+  // states from advantage
+  const st={};A.forEach(r=>{const s=r['State']||'';if(s)st[s]=(st[s]||0)+1});const ss=Object.entries(st).sort((a,b)=>b[1]-a[1]);const smax=ss[0]?.[1]||1;
+  document.getElementById('cov-states').innerHTML=ss.length?ss.map(([s,n])=>`<div class="bar-row" onclick="openCovState('${s}')"><div class="bar-name">${STATE_NAMES[s]||s}</div><div class="bar-track"><div class="bar-fill" style="width:${n/smax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No state data</div>';
+  renderStateMap(st,'cov-map');
 }
-function openAdvState(ab){
-  const rows=fAdv().filter(r=>r['State']===ab).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
-  const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
-  const cities=new Set(rows.map(r=>r['City']).filter(Boolean));
-  const key='state_'+ab;_pageState[key]=1;
-  const head=`<div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">Advantage · ${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>`;
-  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''} · visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`),'adv-detail',8);};
-  _paginators[key]=render;render();
-  nav('advantage-detail',null);
+function renderStateMap(counts,hostId){
+  const host=document.getElementById(hostId);if(!host)return;
+  if(typeof d3==='undefined'||typeof topojson==='undefined'){host.innerHTML='<div class="empty">Map unavailable</div>';return;}
+  const draw=()=>{const max=Math.max(1,...Object.values(counts));const W=host.clientWidth||440,H=Math.max(260,W*0.6);host.innerHTML='';const svg=d3.select(host).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');const states=topojson.feature(_usTopo,_usTopo.objects.states).features;const proj=d3.geoAlbersUsa().fitSize([W,H],{type:'FeatureCollection',features:states});const path=d3.geoPath(proj);const col=d3.scaleLinear().domain([0,max]).range(['#eef0f5','#c89766']);
+  const tip=d3.select(host).append('div').style('position','absolute').style('pointer-events','none').style('background','#1e293b').style('color','#fff').style('padding','6px 10px').style('border-radius','8px').style('font','600 12px Hanken Grotesk,sans-serif').style('opacity',0).style('z-index',5).style('white-space','nowrap');host.style.position='relative';
+  svg.selectAll('path').data(states).join('path').attr('d',path).attr('fill',d=>{const ab=NAME_TO_ABBR[d.properties.name];return(counts[ab]||0)>0?col(counts[ab]):'#f4f6fa';}).attr('stroke','#fff').attr('stroke-width',1).style('cursor',d=>{const ab=NAME_TO_ABBR[d.properties.name];return counts[ab]?'pointer':'default';}).on('mousemove',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];const c=counts[ab]||0;const r=host.getBoundingClientRect();tip.style('opacity',1).html(`${d.properties.name}: <b>${c}</b> visit${c!==1?'s':''}`).style('left',(e.clientX-r.left+12)+'px').style('top',(e.clientY-r.top-8)+'px');}).on('mouseleave',()=>tip.style('opacity',0)).on('click',(e,d)=>{const ab=NAME_TO_ABBR[d.properties.name];if(counts[ab])openCovState(ab);});};
+  if(_usTopo){draw();return;}fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r=>r.json()).then(j=>{_usTopo=j;draw();}).catch(()=>{host.innerHTML='<div class="empty">Map unavailable</div>';});
+}
+function openCovState(ab){
+  const rows=fAdv().filter(r=>r['State']===ab);const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));const cities=new Set(rows.map(r=>r['City']).filter(Boolean));
+  const key='covst_'+ab;_pageState[key]=1;
+  const head=`<div class="detail-hd"><div class="detail-name">${STATE_NAMES[ab]||ab}</div><div class="detail-meta">${chains.size} chain${chains.size!==1?'s':''} · ${cities.size} cit${cities.size!==1?'ies':'y'}</div><div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div></div></div>`;
+  const render=()=>{document.getElementById('cov-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''} · ${fmtDate(r['Visit Date'],'numeric')}`),'cov-detail',8);};_paginators[key]=render;render();nav('coverage-detail',null);
+}
+function openCovRetailer(chain){
+  if(chain==='Circle K (SkyU)'){nav('skyu',document.querySelector('[data-nav=skyu]'));return;}
+  const advRows=fAdv().filter(r=>r['Chain']===chain);const intRows=fInt().filter(r=>(r['Account serviced']||'')===chain);
+  const total=advRows.length+intRows.length;const key='covret_'+chain;_pageState[key]=1;
+  const head=`<div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">${total} visits across sources</div></div>`;
+  const render=()=>{document.getElementById('cov-detail').innerHTML=head+(advRows.length?paginate(advRows,key,r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`Visited ${fmtDate(r['Visit Date'],'numeric')}`),'cov-detail',8):'<div class="empty">No Advantage visits</div>');};_paginators[key]=render;render();nav('coverage-detail',null);
+}
+
+// ──── EXECUTION ────
+function renderExecution(){
+  const I=fInt(),A=fAdv();
+  const cats=[['Wobblers','var(--internal)'],['Samples','var(--skyu)'],['Counter Rack','var(--advantage)'],['Window Cling','var(--good)']];
+  const counts={};cats.forEach(([c])=>counts[c]=0);I.forEach(r=>posTypes(r).forEach(t=>{if(counts[t]!==undefined)counts[t]++}));
+  document.getElementById('exec-pos').innerHTML=cats.map(([c,col])=>`<div class="pos-card ${posFilter===c?'active':''}" style="--pc:${col}" onclick="togglePosExec('${c}')"><div class="pos-num">${counts[c]}</div><div class="pos-lbl">${c}</div><div class="pos-sub">locations</div></div>`).join('');
+  // campaigns
+  if(D.sum.length){document.getElementById('exec-camps').innerHTML=D.sum.map(s=>{const v=parseInt(s['Stores Visited'])||0,t2=parseInt(s['Target Goal'])||1;const cov=Math.round(v/t2*100);const pos=s['POS Placed (Neck Tags/Wobblers)']||'0';const recap=s['Recap Date']||'';const lnk=s['Drive File Link'];return `<div class="camp-rcard"><div class="camp-rcard-top"><div><div class="camp-recap-lbl">Recap</div><div class="camp-recap-date">${recap}</div></div><div class="camp-cov-badge">${cov}%</div></div><div class="camp-rcard-bar"><div class="camp-rcard-fill" style="width:${Math.min(100,cov)}%"></div></div><div class="camp-rcard-stats"><div><div class="crs-num">${v}/${t2}</div><div class="crs-lbl">Stores</div></div><div><div class="crs-num">${pos}</div><div class="crs-lbl">POS</div></div></div>${lnk?`<div class="camp-rcard-actions"><a href="${lnk}" target="_blank" class="chip" style="border-color:var(--advantage);color:var(--advantage)">↗ Report</a></div>`:''}</div>`;}).join('');}
+  // POS locations list
+  let posLocs=I.filter(r=>posTypes(r).length>0);
+  if(posFilter)posLocs=posLocs.filter(r=>posTypes(r).includes(posFilter));
+  set('exec-count',posLocs.length+' locations');
+  const el=document.getElementById('exec-list');
+  el.innerHTML=posLocs.length?posLocs.map(r=>{const loc=r['Store Location (City)']||'Unlabeled';const pts=posTypes(r);return `<div class="loc-row" onclick="openInternalLoc('${loc.replace(/'/g,"")}')"><div class="loc-main"><div class="loc-name">${loc}</div><div class="loc-meta">${pts.join(', ')} · ${fmtDate(r['Timestamp'],'2-digit')}</div></div><svg class="loc-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}).join(''):'<div class="empty">No POS placements in this range</div>';
+}
+function togglePosExec(c){posFilter=posFilter===c?'':c;renderExecution();}
+
+// ──── ISSUES ────
+function renderIssues(){
+  const srch=(document.getElementById('iss-srch')?.value||'').toLowerCase();const src=document.getElementById('iss-src')?.value||'';
+  const issues=[];
+  fSk().forEach(r=>{if(isFlagged(r['Comments / Findings']))issues.push({src:'SkyU',loc:'Circle K · '+city(r),note:r['Comments / Findings'],date:r['Email Date']||'',key:city(r)});});
+  fInt().forEach(r=>{const n=noteOf(r);if(isFlagged(n))issues.push({src:'Internal',loc:(r['Store Location (City)']||'').trim()||'Unlabeled',note:n,date:r['Timestamp']||'',key:(r['Store Location (City)']||'').trim()});});
+  let filtered=issues;
+  if(src)filtered=filtered.filter(i=>i.src===src);
+  if(srch)filtered=filtered.filter(i=>(i.loc+i.note).toLowerCase().includes(srch));
+  filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  set('issues-count',filtered.length+' issues');
+  const el=document.getElementById('issues-list');
+  el.innerHTML=filtered.length?filtered.map(i=>{const C={Internal:'var(--internal)',SkyU:'var(--skyu)'};const B={Internal:'var(--internal-bg)',SkyU:'var(--skyu-bg)'};return `<div class="issue-row" onclick="goToLoc('${i.src}','${(i.key||'').replace(/'/g,"")}')"><div class="issue-badge"></div><div class="issue-body"><div class="issue-store">${i.loc}</div><div class="issue-note">${(i.note||'').slice(0,200)}${(i.note||'').length>200?'…':''}</div><div class="issue-meta"><span class="pill" style="background:${B[i.src]};color:${C[i.src]}">${i.src}</span><span class="pill" style="background:var(--bg-2);color:var(--muted)">${fmtDate(i.date,'2-digit')}</span></div></div></div>`;}).join(''):'<div class="empty">No issues detected in this range</div>';
+}
+
+// ──── INTERNAL ────
+function renderInternal(){
+  const I=fInt();const srch=(document.getElementById('int-srch')?.value||'').toLowerCase();const tp=document.getElementById('int-type')?.value||'';
+  const locs={};I.forEach(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';if(!locs[c])locs[c]=[];locs[c].push(r);});
+  let entries=Object.entries(locs);
+  if(tp)entries=entries.filter(([l,rows])=>rows.some(r=>(r['New or Existing']||'').includes(tp)));
+  if(srch)entries=entries.filter(([l])=>l.toLowerCase().includes(srch));
+  entries.sort((a,b)=>b[1].length-a[1].length);const max=entries[0]?.[1].length||1;
+  set('int-count',entries.length+' locations');
+  document.getElementById('int-list').innerHTML=entries.length?entries.map(([loc,rows],i)=>{const last=rows.map(r=>new Date(r['Timestamp'])).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];return `<div class="loc-row" onclick="openInternalLoc('${loc.replace(/'/g,"")}')"><div class="loc-rank">${i+1}</div><div class="loc-main"><div class="loc-name">${loc}</div><div class="loc-meta">Last visit ${last?fmtDate(last,'2-digit'):'—'}</div></div><div class="loc-bar-wrap"><div class="loc-bar"><div class="loc-bar-fill" style="width:${rows.length/max*100}%;background:var(--internal)"></div></div></div><div class="loc-count"><div class="loc-count-num">${rows.length}</div><div class="loc-count-lbl">visits</div></div><svg class="loc-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}).join(''):'<div class="empty">No locations in this range</div>';
+}
+function openInternalLoc(loc){
+  const rows=D.int.filter(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled location';return c===loc;}).sort((a,b)=>new Date(b['Timestamp'])-new Date(a['Timestamp']));
+  const newest=rows[0]||{};const posSet=new Set();rows.forEach(r=>posTypes(r).forEach(t=>posSet.add(t)));
+  document.getElementById('int-detail').innerHTML=`<div class="detail-hd"><div class="detail-name">${loc}</div><div class="detail-meta">Internal Team · ${newest['New or Existing']||''} account</div><div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Total Visits</div></div><div><div class="detail-stat-num">${posSet.size}</div><div class="detail-stat-lbl">POS Types</div></div></div></div>`+
+  rows.map(r=>{const notes=noteOf(r);const ph=driveLink(r);const thumb=driveThumb(ph);const pos=posTypes(r);const isNew=(r['New or Existing']||'').toLowerCase().includes('new');const dm=r['Was the decision maker available?']||'';const skus=r['How many SKUs are currently active in this account']||'';const pods=r['Whether you sold in any new PODs']||'';const acct=r['Account serviced']||'';const flag=isFlagged(notes);
+    return `<div class="visit-block"><div class="visit-top"><div class="visit-date"><div class="visit-date-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>${fmtDate(r['Timestamp'])}</div><div class="visit-badges"><span class="pill" style="background:${isNew?'var(--skyu-bg)':'var(--good-bg)'};color:${isNew?'var(--skyu)':'var(--good)'}">${isNew?'New':'Existing'}</span>${pos.map(p=>`<span class="pill" style="background:var(--internal-bg);color:var(--internal)">${p}</span>`).join('')}${flag?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:''}</div></div>${notes?`<div class="visit-notes">${notes}</div>`:'<div class="visit-notes" style="color:var(--subtle)">No notes recorded</div>'}<div class="visit-grid">${acct?`<div><div class="vg-lbl">Account</div><div class="vg-val">${acct}</div></div>`:''}${dm?`<div><div class="vg-lbl">DM Available</div><div class="vg-val">${dm}</div></div>`:''}${skus?`<div><div class="vg-lbl">Active SKUs</div><div class="vg-val">${skus}</div></div>`:''}${pods?`<div><div class="vg-lbl">New PODs</div><div class="vg-val">${pods}</div></div>`:''}</div>${thumb?`<div class="visit-photo"><img class="photo-thumb" src="${thumb}" loading="lazy" onerror="this.style.display='none'"><br><a href="${ph}" target="_blank" style="font-size:.74rem;font-weight:700;color:var(--accent)">↗ Open full size</a></div>`:''}</div>`;}).join('');
+  nav('internal-detail',null);
+}
+
+// ──── SKYU ────
+function renderSkyu(){
+  const S=fSk();const srch=(document.getElementById('sk-srch')?.value||'').toLowerCase();
+  const locs={};S.forEach(r=>{const c=city(r);if(!locs[c])locs[c]=[];locs[c].push(r);});
+  let entries=Object.entries(locs);if(srch)entries=entries.filter(([c])=>c.toLowerCase().includes(srch));
+  entries.sort((a,b)=>b[1].length-a[1].length);const max=entries[0]?.[1].length||1;
+  set('sk-count',entries.length+' locations');
+  document.getElementById('sk-list').innerHTML=entries.length?entries.map(([loc,rows],i)=>{const last=rows.map(r=>new Date(r['Email Date'])).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];const flagged=rows.filter(r=>isFlagged(r['Comments / Findings'])).length;return `<div class="loc-row" onclick="openSkyuLoc('${loc.replace(/'/g,"")}')"><div class="loc-rank">${i+1}</div><div class="loc-main"><div class="loc-name">Circle K · ${loc}</div><div class="loc-meta">Last task ${last?fmtDate(last,'2-digit'):'—'}${flagged?` · <span style="color:var(--warn);font-weight:700">${flagged} flagged</span>`:''}</div></div><div class="loc-bar-wrap"><div class="loc-bar"><div class="loc-bar-fill" style="width:${rows.length/max*100}%;background:var(--skyu)"></div></div></div><div class="loc-count"><div class="loc-count-num">${rows.length}</div><div class="loc-count-lbl">tasks</div></div><svg class="loc-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;}).join(''):'<div class="empty">No locations</div>';
+}
+function openSkyuLoc(loc){
+  const rows=D.sk.filter(r=>city(r)===loc).sort((a,b)=>new Date(b['Email Date'])-new Date(a['Email Date']));
+  const addr=rows[0]?.['Address']||'';const flagged=rows.filter(r=>isFlagged(r['Comments / Findings'])).length;
+  document.getElementById('sk-detail').innerHTML=`<div class="detail-hd"><div class="detail-name">Circle K · ${loc}</div><div class="detail-meta">${addr}</div><div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Tasks</div></div>${flagged?`<div><div class="detail-stat-num">${flagged}</div><div class="detail-stat-lbl">Flagged</div></div>`:''}</div></div>`+
+  rows.map(r=>{const notes=r['Comments / Findings']||'';const portal=r['Portal Link']||'';const flag=isFlagged(notes);
+    return `<div class="visit-block"><div class="visit-top"><div class="visit-date"><div class="visit-date-ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>${fmtDate(r['Email Date'])}</div><div class="visit-badges">${flag?`<span class="pill" style="background:var(--warn-bg);color:var(--warn)">⚑ Flagged</span>`:`<span class="pill" style="background:var(--good-bg);color:var(--good)">✓ Complete</span>`}</div></div>${notes?`<div class="visit-notes">${notes}</div>`:'<div class="visit-notes" style="color:var(--subtle)">No comments</div>'}<div class="visit-grid">${r['Address']?`<div><div class="vg-lbl">Address</div><div class="vg-val" style="font-size:.78rem">${r['Address']}</div></div>`:''}<div><div class="vg-lbl">Task ID</div><div class="vg-val" style="font-family:var(--mono);font-size:.68rem;color:var(--muted)">${r['Task ID']||'—'}</div></div></div>${portal?`<div class="visit-photo"><a href="${portal}" target="_blank" class="chip" style="border-color:var(--skyu);color:var(--skyu)">↗ View Photos in Portal</a></div>`:''}</div>`;}).join('');
+  nav('skyu-detail',null);
+}
+
+// ──── ADVANTAGE ────
+function renderAdvantage(){
+  const A=fAdv();
+  if(D.sum.length){document.getElementById('adv-camps').innerHTML=D.sum.map(s=>{const v=parseInt(s['Stores Visited'])||0,t2=parseInt(s['Target Goal'])||1;const cov=Math.round(v/t2*100);const pos=s['POS Placed (Neck Tags/Wobblers)']||'0';const recap=s['Recap Date']||'';const sc=A.filter(r=>r['Recap Date']===recap).length;const lnk=s['Drive File Link'];
+    return `<div class="camp-rcard"><div class="camp-rcard-top"><div><div class="camp-recap-lbl">Recap</div><div class="camp-recap-date">${recap}</div></div><div class="camp-cov-badge">${cov}%</div></div><div class="camp-rcard-bar"><div class="camp-rcard-fill" style="width:${Math.min(100,cov)}%"></div></div><div class="camp-rcard-stats"><div><div class="crs-num">${v}/${t2}</div><div class="crs-lbl">Stores</div></div><div><div class="crs-num">${pos}</div><div class="crs-lbl">POS</div></div><div><div class="crs-num">${sc}</div><div class="crs-lbl">Logged</div></div></div><div class="camp-rcard-actions"><button class="chip" onclick="openAdvRecap('${recap.replace(/'/g,"")}')">View ${sc} stores →</button>${lnk?`<a href="${lnk}" target="_blank" class="chip" style="border-color:var(--advantage);color:var(--advantage)">↗ Report</a>`:''}</div></div>`;}).join('');}else document.getElementById('adv-camps').innerHTML='<div class="empty">No campaigns</div>';
+  const ch={};A.forEach(r=>{const c=r['Chain']||'';if(c)ch[c]=(ch[c]||0)+1});const cs=Object.entries(ch).sort((a,b)=>b[1]-a[1]);const cmax=cs[0]?.[1]||1;
+  document.getElementById('adv-retailers').innerHTML=cs.length?cs.map(([c,n])=>`<div class="bar-row" onclick="openAdvChain('${c.replace(/'/g,"")}')"><div class="bar-name">${c}</div><div class="bar-track"><div class="bar-fill" style="width:${n/cmax*100}%"></div></div><div class="bar-cnt">${n}</div><svg class="loc-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`).join(''):'<div class="empty">No visits</div>';
 }
 function openAdvRecap(recap){
   const rows=D.adv.filter(r=>r['Recap Date']===recap).sort((a,b)=>(a['Chain']||'').localeCompare(b['Chain']||''));
-  const sum=D.sum.find(s=>s['Recap Date']===recap)||{};
-  const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);
-  const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
+  const sum=D.sum.find(s=>s['Recap Date']===recap)||{};const v=parseInt(sum['Stores Visited'])||0,t=parseInt(sum['Target Goal'])||1;const cov=Math.round(v/t*100);const chains=new Set(rows.map(r=>r['Chain']).filter(Boolean));
   const key='recap_'+recap;_pageState[key]=1;
-  const head=`<div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">Advantage campaign · ${chains.size} chains · ${rows.length} store visits</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Stores Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS Placed</div></div></div></div>`;
-  const render=()=>{document.getElementById('adv-detail').innerHTML=head+'<div id="adv-detail-body">'+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''}, ${r['State']||''} · visited ${fmtDate(r['Visit Date'],'numeric')}`),'adv-detail',8)+'</div>';};
-  _paginators[key]=render;render();
-  nav('advantage-detail',null);
+  const head=`<div class="detail-hd"><div class="detail-name">Recap ${recap}</div><div class="detail-meta">${chains.size} chains · ${rows.length} stores</div><div class="detail-stats"><div><div class="detail-stat-num">${cov}%</div><div class="detail-stat-lbl">Coverage</div></div><div><div class="detail-stat-num">${v}/${t}</div><div class="detail-stat-lbl">Visited</div></div><div><div class="detail-stat-num">${sum['POS Placed (Neck Tags/Wobblers)']||'—'}</div><div class="detail-stat-lbl">POS</div></div></div></div>`;
+  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`${r['Chain']||''} #${r['Store #']||'—'}`,`${r['City']||''}, ${r['State']||''} · ${fmtDate(r['Visit Date'],'numeric')}`),'adv-detail',8);};_paginators[key]=render;render();nav('advantage-detail',null);
 }
 function openAdvChain(chain){
-  const rows=fAdv().filter(r=>r['Chain']===chain).sort((a,b)=>new Date(b['Visit Date'])-new Date(a['Visit Date']));
-  const states=new Set(rows.map(r=>r['State']).filter(Boolean));
+  const rows=fAdv().filter(r=>r['Chain']===chain).sort((a,b)=>new Date(b['Visit Date'])-new Date(a['Visit Date']));const states=new Set(rows.map(r=>r['State']).filter(Boolean));
   const key='chain_'+chain;_pageState[key]=1;
-  const head=`<div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">Advantage · ${states.size} state${states.size!==1?'s':''}</div>
-    <div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Store Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Unique Stores</div></div></div></div>`;
-  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`Visited ${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`),'adv-detail',8);};
-  _paginators[key]=render;render();
-  nav('advantage-detail',null);
+  const head=`<div class="detail-hd"><div class="detail-name">${chain}</div><div class="detail-meta">${states.size} state${states.size!==1?'s':''}</div><div class="detail-stats"><div><div class="detail-stat-num">${rows.length}</div><div class="detail-stat-lbl">Visits</div></div><div><div class="detail-stat-num">${new Set(rows.map(r=>r['Store #']).filter(Boolean)).size}</div><div class="detail-stat-lbl">Stores</div></div></div></div>`;
+  const render=()=>{document.getElementById('adv-detail').innerHTML=head+paginate(rows,key,r=>advStoreBlock(r,`Store #${r['Store #']||'—'} · ${r['City']||''}, ${r['State']||''}`,`${fmtDate(r['Visit Date'],'numeric')} · Recap ${r['Recap Date']||''}`),'adv-detail',8);};_paginators[key]=render;render();nav('advantage-detail',null);
 }
 
-// NAV
-const TITLES={overview:'Dashboard',activity:'Recent Activity',internal:'Internal Team',skyu:'SkyU · Circle K',advantage:'Advantage','internal-detail':'Location Detail','skyu-detail':'Location Detail','advantage-detail':'Chain Detail',config:'Configuration'};
+// ──── GLOBAL SEARCH ────
+function runSearch(q){
+  if(!q||q.length<2){const cur=document.querySelector('.page.active');if(cur&&cur.id==='page-search')nav('command',document.querySelector('[data-nav=command]'));return;}
+  q=q.toLowerCase();const results=[];
+  // internal locations
+  const iLocs={};D.int.forEach(r=>{const c=(r['Store Location (City)']||'').trim()||'Unlabeled';if(!iLocs[c])iLocs[c]=0;iLocs[c]++});
+  Object.entries(iLocs).forEach(([loc,n])=>{if(loc.toLowerCase().includes(q))results.push({name:loc,meta:n+' visits · Internal Team',src:'Internal',key:loc});});
+  // skyu cities
+  const sCities={};D.sk.forEach(r=>{const c=city(r);sCities[c]=(sCities[c]||0)+1});
+  Object.entries(sCities).forEach(([c,n])=>{if(c.toLowerCase().includes(q))results.push({name:'Circle K · '+c,meta:n+' tasks · SkyU',src:'SkyU',key:c});});
+  // advantage chains/cities
+  const aChains={};D.adv.forEach(r=>{const c=r['Chain']||'';aChains[c]=(aChains[c]||0)+1});
+  Object.entries(aChains).forEach(([c,n])=>{if(c.toLowerCase().includes(q))results.push({name:c,meta:n+' visits · Advantage',src:'Advantage',key:c});});
+  D.adv.forEach(r=>{if((r['City']||'').toLowerCase().includes(q))results.push({name:`${r['Chain']} #${r['Store #']} · ${r['City']}, ${r['State']}`,meta:'Advantage · '+fmtDate(r['Visit Date'],'2-digit'),src:'Advantage',key:r['Chain']||''});});
+  // notes
+  D.sk.forEach(r=>{if((r['Comments / Findings']||'').toLowerCase().includes(q))results.push({name:'Circle K · '+city(r),meta:'Comment match · SkyU',src:'SkyU',key:city(r)});});
+  // dedupe
+  const seen=new Set();const unique=results.filter(r=>{const k=r.name+r.src;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,20);
+  set('search-title',`Search: "${q}" (${unique.length} results)`);
+  const C={Internal:'var(--internal)',SkyU:'var(--skyu)',Advantage:'var(--advantage)'},B={Internal:'var(--internal-bg)',SkyU:'var(--skyu-bg)',Advantage:'var(--advantage-bg)'},AB={Internal:'INT',SkyU:'SKY',Advantage:'ADV'};
+  document.getElementById('search-body').innerHTML=unique.length?unique.map(r=>`<div class="search-item" onclick="goToLoc('${r.src}','${(r.key||'').replace(/'/g,"")}');document.getElementById('global-search').value='';"><div class="search-item-ico" style="background:${B[r.src]};color:${C[r.src]}">${AB[r.src]}</div><div class="search-item-body"><div class="search-item-name">${r.name}</div><div class="search-item-meta">${r.meta}</div></div></div>`).join(''):'<div class="empty">No results found</div>';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-search').classList.add('active');set('page-title','Search');
+}
+
+// ──── NAV ────
+const TITLES={command:'Command Center',coverage:'Coverage',execution:'Execution',issues:'Issues',internal:'Internal Team',skyu:'SkyU · Circle K',advantage:'Advantage','internal-detail':'Location Detail','skyu-detail':'Location Detail','advantage-detail':'Detail','coverage-detail':'Coverage Detail',config:'Configuration',search:'Search'};
 function nav(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(el)el.classList.add('active');else{const base=id.replace('-detail','');const b=document.querySelector('[data-nav='+base+']');if(b)b.classList.add('active');}set('page-title',TITLES[id]||id);closeMobileNav();window.scrollTo({top:0,behavior:'smooth'});}
 
 loadAll();
