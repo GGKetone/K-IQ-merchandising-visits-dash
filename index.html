@@ -208,9 +208,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .visit-note{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
 .visit-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--text-3);}
 .visit-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.visit-photo{width:180px;height:135px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
+.visit-photo{width:240px;height:180px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
 .visit-photo:hover{transform:scale(1.03);}
-.adv-photo{width:280px;height:210px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
+.adv-photo{width:340px;height:255px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
 
 /* PROGRESS */
 .prog-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -556,7 +556,8 @@ document.getElementById('modal-pw').addEventListener('keydown',e=>{if(e.key==='E
 function updateActive(){document.querySelectorAll('.sb-item').forEach(el=>el.classList.toggle('active',el.dataset.page===state.currentPage));}
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
-function switchTab(id,key){const c=document.getElementById(id);if(!c)return;c.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));c.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.dataset.tab===key));}
+function switchTab(id,key){const c=document.getElementById(id);if(!c)return;c.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===key));c.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.dataset.tab===key));state._tabs=state._tabs||{};state._tabs[id]=key;}
+function restoreTabs(){if(!state._tabs)return;for(const[id,key]of Object.entries(state._tabs)){const c=document.getElementById(id);if(c)switchTab(id,key);}}
 
 // SEARCH
 function doSearch(q){
@@ -605,6 +606,7 @@ function render(){
   else if(p==='config')div.innerHTML=renderConfig();
   else div.innerHTML='<div class="empty"><div class="empty-text">Page not found.</div></div>';
   el.appendChild(div);
+  restoreTabs();
   if(p==='coverage')initMap();
 }
 
@@ -698,7 +700,7 @@ function renderPOSDetail(params){
   <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
   <div class="pos-drill-hd">
     <div class="pos-drill-icon" style="background:${color}1a;color:${color}">${icon}</div>
-    <div><div class="pos-drill-title">${esc(type)}</div><div class="text-muted text-sm" style="margin-top:2px">Placed across all sources</div></div>
+    <div><div class="pos-drill-title">${esc(type)}</div><div class="text-muted text-sm" style="margin-top:2px">${intMatches.length} from Internal Team${(isNT||isWB)&&advTotal?' + '+advTotal+' from Advantage':''}</div></div>
     <div class="pos-drill-total" style="color:${color}">${total}</div>
   </div>
 </div>
@@ -712,20 +714,8 @@ function renderPOSDetail(params){
 
   <div class="tab-pane active" data-tab="retailer">
     <div class="list-card" style="margin-bottom:16px">
-      ${retailerPOS.filter(([,d])=>d[type]>0).map(([name,d])=>{
-        const firstRow=d.rows[0];
-        const loc=firstRow?firstRow['Store Location (City)']||name:name;
-        return`<div class="list-item card-lift" style="cursor:pointer" onclick="nav('retailer-detail',{retailer:'${esc(name)}',type:'${esc(type)}'})">
-          <div class="list-item-main">
-            <div class="list-item-title">${esc(name)}</div>
-            <div class="list-item-sub">${d.visits} total visit${d.visits!==1?'s':''} · ${d[type]} placement${d[type]!==1?'s':''}</div>
-          </div>
-          <div class="list-item-right" style="display:flex;align-items:center;gap:8px">
-            <div class="list-count" style="color:${color}">${d[type]}</div>
-            <svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg>
-          </div>
-        </div>`;
-      }).join('')||'<div class="empty"><div class="empty-text">No Internal Team data for this type.</div></div>'}
+      ${retailerPOS.map(([name,d])=>'<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'retailer-detail\',{retailer:'+JSON.stringify(name).replace(/"/g,'&quot;')+',type:'+JSON.stringify(type).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(name)+'</div><div class="list-item-sub">'+d.visits+' visit'+(d.visits!==1?'s':'')+' · '+(d[type]||0)+' placement'+((d[type]||0)!==1?'s':'')+'</div></div><div class="list-item-right" style="display:flex;align-items:center;gap:8px"><div class="list-count" style="color:'+(d[type]?color:'var(--text-3)')+'">'+( d[type]||'—')+'</div><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg></div></div>').join('')}
+      ${hasAdv?'<div style="margin-top:12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);padding:4px 0">Advantage Chains</div>'+[...advRows.reduce((m,r)=>{const c=r['Chain'];if(c&&!m.has(c))m.set(c,0);if(c)m.set(c,m.get(c)+1);return m;},new Map()).entries()].sort((a,b)=>b[1]-a[1]).map(([c,n])=>'<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(c).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(c)+'</div><div class="list-item-sub">'+n+' store'+(n!==1?'s':'')+' visited</div></div><div class="list-item-right"><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg></div></div>').join(''):''}
     </div>
       ${hasAdv?'<div class="card"><div style="font-weight:600;font-size:13px;margin-bottom:10px">Advantage — by recap</div>'+advSum.map(s=>{const nt=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);const wb=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);const val=isNT?nt:wb;return'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})">'+'<span style="flex:1;font-size:13px">Recap '+esc(s['Recap Date'])+'</span><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+val+'</span></div>';}).join('')+'</div>':''}
   </div>
@@ -734,7 +724,7 @@ function renderPOSDetail(params){
     <div class="grid-3" style="margin-bottom:20px">
       <div class="card" style="border-top:3px solid var(--internal)"><div class="card-label" style="color:var(--internal)">Internal Team</div><div class="card-value" style="color:var(--internal)">${intMatches.length}</div><div class="card-sub">visits with ${esc(type)}</div></div>
       ${hasAdv?`<div class="card" style="border-top:3px solid var(--advantage)"><div class="card-label" style="color:var(--advantage)">Advantage</div><div class="card-value" style="color:var(--advantage)">${advTotal}</div><div class="card-sub">stores with ${esc(type)}</div></div>`:''}
-      <div class="card" style="border-top:3px solid var(--skyu)"><div class="card-label" style="color:var(--skyu)">SkyU · Circle K</div><div class="card-value" style="color:var(--skyu)">—</div><div class="card-sub">not in email data</div></div>
+
     </div>
     ${(()=>{const SPS=10,spk='srcpg_'+type.replace(/\s/g,'');if(!state[spk])state[spk]=1;const spg=state[spk],stot=intMatches.length,stp=Math.ceil(stot/SPS),spaged=intMatches.slice((spg-1)*SPS,spg*SPS);const spag=stp>1?'<div class="pagination">'+( spg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+(spg)+' of '+(stp)+'</span>'+(spg<stp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg+1)+';render()">Next →</button>':'')+'</div>':'';return spaged.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span>'+posTag(type)+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,180))+(note.length>180?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')+spag;})()}
   </div>
@@ -753,7 +743,7 @@ function renderPOSDetail(params){
         +'<div class="cc-meta"><span><strong>'+visited+'</strong> / '+target+' stores</span></div>'
         +(isNT?'<div style="font-size:12px;color:var(--text-3);margin-top:6px">Non-HT: <strong style="color:var(--text)">'+nt+'</strong> · Harris Teeter: <strong style="color:var(--text)">'+ntHT+'</strong></div>':'')
         +'<div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div>'
-        +'<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px">Store photos from this recap</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+stores.slice(0,6).map(r=>advPhotos(r['Photos']||'').slice(0,1).map(p=>'<img src="'+esc(p)+'" style="width:110px;height:84px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border)" loading="lazy" onerror="this.style.display=\'none\'">').join('')).join('')+'</div></div>'
+        +'<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px">Store photos from this recap</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+stores.slice(0,6).map(r=>advPhotos(r['Photos']||'').slice(0,1).map(p=>'<img src="'+esc(p)+'" style="width:180px;height:135px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer" loading="lazy" onerror="this.style.display=\'none\'">').join('')).join('')+'</div></div>'
         +'</div>';
     }).join('')}
   </div>`:''}
@@ -769,8 +759,8 @@ function renderCoverage(){
   const advRows=fa(),intRows=fi(),skyRows=fs();
   const stateCounts=countByKey(advRows.filter(r=>r['State']),r=>r['State'].toUpperCase());
   const rc={};intRows.forEach(r=>{const a=r['Account serviced'];if(a)rc[a]=(rc[a]||0)+1;});if(skyRows.length)rc['Circle K']=(rc['Circle K']||0)+skyRows.length;advRows.forEach(r=>{const c=r['Chain'];if(c)rc[c]=(rc[c]||0)+1;});
-  const tr=sortedEntries(rc).slice(0,15),mr=tr[0]?tr[0][1]:1;
-  const ts=sortedEntries(stateCounts).slice(0,12),ms=ts[0]?ts[0][1]:1;
+  const tr=sortedEntries(rc),mr=tr[0]?tr[0][1]:1;
+  const ts=sortedEntries(stateCounts),ms=ts[0]?ts[0][1]:1;
   return`
 <div class="section-hd"><div class="section-title" style="font-size:20px">Coverage</div><div class="section-sub">Where are we active?</div></div>
 <div class="grid-2" style="gap:24px">
@@ -781,7 +771,7 @@ function renderCoverage(){
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div><div class="section-sub">All sources combined</div></div>
     <div class="list-card" style="padding:14px 16px">
-      ${tr.length?tr.map(([n,c])=>'<div class="bar-list-item" style="cursor:pointer" onclick="nav(\'internal\')">'+'<span class="bar-list-name">'+esc(n)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/mr*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No data in range.</div></div>'}
+      ${tr.length?tr.map(([n,c])=>'<div class="bar-list-item" style="cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(n).replace(/\"/g,'&quot;')+'})">'+'<span class="bar-list-name">'+esc(n)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/mr*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No data in range.</div></div>'}
     </div>
   </div>
 </div>
@@ -806,7 +796,7 @@ function initMap(){
       .on('mousemove',(e,d)=>{const a=ia[d.id]||'';const c=sc[a]||0;tt.style.display='block';tt.style.left=(e.offsetX+10)+'px';tt.style.top=(e.offsetY-28)+'px';tt.textContent=a+': '+c+' visit'+(c!==1?'s':'');})
       .on('mouseleave',()=>tt.style.display='none')
       .on('click',(e,d)=>{const a=ia[d.id];if(a&&sc[a])nav('state-detail',{state:a});});
-  }).catch(()=>{svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#8096b0').text('Map loading…');});
+  }).catch(err=>{console.warn('Map load failed:',err);svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','#8096b0').attr('font-size','13px').text('Map could not load — check network');svg.append('text').attr('x',W/2).attr('y',H/2+20).attr('text-anchor','middle').attr('fill','#8096b0').attr('font-size','11px').text('State data is shown in the breakdown below');});
 }
 function getStateIdMap(){return{1:'AL',2:'AK',4:'AZ',5:'AR',6:'CA',8:'CO',9:'CT',10:'DE',11:'DC',12:'FL',13:'GA',15:'HI',16:'ID',17:'IL',18:'IN',19:'IA',20:'KS',21:'KY',22:'LA',23:'ME',24:'MD',25:'MA',26:'MI',27:'MN',28:'MS',29:'MO',30:'MT',31:'NE',32:'NV',33:'NH',34:'NJ',35:'NM',36:'NY',37:'NC',38:'ND',39:'OH',40:'OK',41:'OR',42:'PA',44:'RI',45:'SC',46:'SD',47:'TN',48:'TX',49:'UT',50:'VT',51:'VA',53:'WA',54:'WV',55:'WI',56:'WY'};}
 
@@ -850,7 +840,7 @@ ${advSum.length?`
 <div class="card" style="padding:0;overflow:hidden">
   <table class="r-table">
     <thead><tr><th>Retailer</th><th style="text-align:right;color:var(--pos-necktag)">NT</th><th style="text-align:right;color:var(--pos-wobbler)">WB</th><th style="text-align:right;color:var(--pos-counter)">CR</th><th style="text-align:right;color:var(--pos-sample)">SP</th><th style="text-align:right;color:var(--accent)">Visits</th></tr></thead>
-    <tbody>${rp.slice(0,15).map(([n,d])=>'<tr onclick="nav(\'internal-detail\',{loc:\''+esc(d.rows[0]&&d.rows[0]['Store Location (City)']||n)+'\'})">'+'<td class="rname">'+esc(n)+'</td>'+'<td class="num" style="color:var(--pos-necktag)">'+( d['Neck Tag']||'—')+'</td>'+'<td class="num" style="color:var(--pos-wobbler)">'+( d['Wobbler']||'—')+'</td>'+'<td class="num" style="color:var(--pos-counter)">'+( d['Counter Rack']||'—')+'</td>'+'<td class="num" style="color:var(--pos-sample)">'+( d['Sample']||'—')+'</td>'+'<td class="num" style="color:var(--accent)">'+d.visits+'</td></tr>').join('')}</tbody>
+    <tbody>${rp.map(([n,d])=>'<tr onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(n).replace(/\"/g,'&quot;')+'})">'+'<td class="rname">'+esc(n)+'</td>'+'<td class="num" style="color:var(--pos-necktag)">'+( d['Neck Tag']||'—')+'</td>'+'<td class="num" style="color:var(--pos-wobbler)">'+( d['Wobbler']||'—')+'</td>'+'<td class="num" style="color:var(--pos-counter)">'+( d['Counter Rack']||'—')+'</td>'+'<td class="num" style="color:var(--pos-sample)">'+( d['Sample']||'—')+'</td>'+'<td class="num" style="color:var(--accent)">'+d.visits+'</td></tr>').join('')}</tbody>
   </table>
   <div style="padding:8px 16px;font-size:11px;color:var(--text-3);border-top:1px solid var(--border)">NT = Neck Tag · WB = Wobbler · CR = Counter Rack · SP = Sample</div>
 </div>`;
@@ -947,7 +937,7 @@ function renderAdvantage(){
 <div class="grid-2" style="gap:24px">
   <div>
     <div class="section-hd"><div class="section-title">Campaign Recaps</div></div>
-    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>r['Recap Date']===s['Recap Date']).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
+    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>r['Recap Date']===s['Recap Date']).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer" onclick="event.stopPropagation();nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'});">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
   </div>
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div></div>
@@ -972,7 +962,7 @@ function renderAdvRecap(params){
 </div>
 ${summary?'<div class="card" style="margin-bottom:20px"><div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px"><span>Target: <strong>'+( summary['Target Goal']||'—')+'</strong></span><span>Visited: <strong>'+(summary['Stores Visited']||'—')+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (non-HT): <strong>'+(summary['Neck Tags Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-wobbler)">Wobblers: <strong>'+(summary['Wobblers Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (HT): <strong>'+(summary['Neck Tags Placed (HT)']||0)+'</strong></span>'+(summary['Drive File Link']?'<a href="'+esc(summary['Drive File Link'])+'" target="_blank" class="link">View full report →</a>':'')+'</div></div>':''}
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'">').join('')+'</div>':'')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores found for this recap.</div></div>':''}`;
 }
@@ -989,22 +979,20 @@ function renderAdvChain(params){
   <div class="detail-sub">${tot} store${tot!==1?'s':''} visited</div>
 </div>
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'">').join('')+'</div>':'')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores for this chain.</div></div>':''}`;
 }
 
 function renderStateDetail(params){
   const st=params&&params.state?params.state:'';const rows=fa().filter(r=>(r['State']||'').toUpperCase()===st.toUpperCase());rows.sort((a,b)=>(parseDate(b['Visit Date'])||0)-(parseDate(a['Visit Date'])||0));
-  return`
-<div class="detail-hd">
-  <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
-  <div class="detail-title">${esc(st)} Stores</div>
-  <div class="detail-sub">${rows.length} store${rows.length!==1?'s':''} visited (Advantage)</div>
-</div>
-<div class="list-card">
-  ${rows.length?rows.map(r=>'<div class="list-item" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="list-item-sub">'+esc(r['City']||'')+'</div></div><div class="list-item-right"><div class="list-date">'+fmtShort(r['Visit Date'])+'</div></div></div>').join(''):'<div class="empty"><div class="empty-text">No stores in this state.</div></div>'}
-</div>`;
+  const chains=countByKey(rows.filter(r=>r['Chain']),r=>r['Chain']);const chainList=sortedEntries(chains);
+  const SPS=12,spk='stpg_'+st;if(!state[spk])state[spk]=1;
+  const pg=state[spk],tot=rows.length,tp=Math.ceil(tot/SPS),paged=rows.slice((pg-1)*SPS,pg*SPS);
+  const pag=tp>1?'<div class="pagination">'+(pg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+pg+' of '+tp+' \u00b7 '+tot+' stores</span>'+(pg<tp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
+  const chainSummary=chainList.length?'<div class="list-card" style="margin-bottom:20px">'+chainList.map(([c,n])=>'<div class="list-item" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(c).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(c)+'</div></div><div class="list-item-right"><div class="list-count">'+n+'</div></div></div>').join('')+'</div>':'';
+  const storeCards=paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
+  return'<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(st)+' Stores</div><div class="detail-sub">'+tot+' store'+(tot!==1?'s':'')+' visited (Advantage)</div></div><div class="section-hd"><div class="section-title">Retailers in '+esc(st)+'</div></div>'+chainSummary+'<div class="section-hd"><div class="section-title">All Stores</div></div><div class="grid-2">'+storeCards+'</div>'+pag+(!rows.length?'<div class="empty"><div class="empty-text">No stores in this state.</div></div>':'');
 }
 
 // CHAIN DETAIL
