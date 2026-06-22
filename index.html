@@ -208,9 +208,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .visit-note{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
 .visit-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--text-3);}
 .visit-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.visit-photo{width:100%;max-width:420px;height:auto;min-height:200px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
+.visit-photo{width:160px;height:120px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
 .visit-photo:hover{transform:scale(1.03);}
-.adv-photo{width:100%;max-width:480px;height:auto;min-height:240px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
+.adv-photo{width:220px;height:165px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
 
 /* PROGRESS */
 .prog-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -544,7 +544,16 @@ function getAllIssues(){
 function skyuCity(r){const m=(r['Source Email Subject']||'').match(/Circle K @ (.+?) task/);return m?m[1].trim():(r['Store']||'Unlabeled');}
 function driveThumb(url){if(!url)return null;const m=url.match(/[-\w]{25,}/);if(!m)return null;return'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w800';}
 function dLinks(str){if(!str)return[];return str.split(',').map(s=>s.trim()).filter(Boolean).map(driveThumb).filter(Boolean);}
-function advPhotos(str){if(!str)return[];return str.split('|').map(s=>s.trim()).filter(Boolean);}
+function advPhotos(str){
+  if(!str)return[];
+  const urls=str.split('|').map(s=>s.trim()).filter(Boolean);
+  return urls.map(u=>{
+    if(u.includes('thumbnail'))return u;
+    const m=u.match(/[-\w]{25,}/);
+    if(m)return'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w800';
+    return u;
+  });
+}
 
 // NAV
 function nav(page,params){if(state.currentPage!==page)state.history.push({page:state.currentPage,params:state.currentParams});state.currentPage=page;state.currentParams=params||null;updateActive();render();}
@@ -700,7 +709,7 @@ function renderPOSDetail(params){
   <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
   <div class="pos-drill-hd">
     <div class="pos-drill-icon" style="background:${color}1a;color:${color}">${icon}</div>
-    <div><div class="pos-drill-title">${esc(type)}</div><div class="text-muted text-sm" style="margin-top:2px">${intMatches.length} from Internal Team${(isNT||isWB)&&advTotal?' + '+advTotal+' from Advantage':''}</div></div>
+    <div><div class="pos-drill-title">${esc(type)}</div><div class="text-sm" style="margin-top:2px"><span style="color:var(--internal);cursor:pointer;font-weight:600" onclick="switchTab('pos-tabs','source')">${intMatches.length} from Internal Team</span>${(isNT||isWB)&&advTotal?' <span style="color:var(--text-3)">+</span> <span style="color:var(--advantage);cursor:pointer;font-weight:600" onclick="switchTab(\'pos-tabs\',\'campaign\')">'+advTotal+' from Advantage</span>':''}</div></div>
     <div class="pos-drill-total" style="color:${color}">${total}</div>
   </div>
 </div>
@@ -722,7 +731,7 @@ function renderPOSDetail(params){
 
   <div class="tab-pane" data-tab="source">
     <div class="grid-3" style="margin-bottom:20px">
-      <div class="card" style="border-top:3px solid var(--internal)"><div class="card-label" style="color:var(--internal)">Internal Team</div><div class="card-value" style="color:var(--internal)">${intMatches.length}</div><div class="card-sub">visits with ${esc(type)}</div></div>
+      <div class="card" style="border-top:3px solid var(--internal);cursor:pointer" onclick="switchTab('pos-tabs','visits')"><div class="card-label" style="color:var(--internal)">Internal Team</div><div class="card-value" style="color:var(--internal)">${intMatches.length}</div><div class="card-sub">visits with ${esc(type)} — click to see all</div></div>
       ${hasAdv?`<div class="card" style="border-top:3px solid var(--advantage)"><div class="card-label" style="color:var(--advantage)">Advantage</div><div class="card-value" style="color:var(--advantage)">${advTotal}</div><div class="card-sub">stores with ${esc(type)}</div></div>`:''}
 
     </div>
@@ -758,7 +767,7 @@ function renderPOSDetail(params){
 function renderCoverage(){
   const advRows=fa(),intRows=fi(),skyRows=fs();
   const stateCounts=countByKey(advRows.filter(r=>r['State']),r=>r['State'].toUpperCase());
-  const rc={};intRows.forEach(r=>{const a=r['Account serviced'];if(a)rc[a]=(rc[a]||0)+1;});if(skyRows.length)rc['Circle K']=(rc['Circle K']||0)+skyRows.length;advRows.forEach(r=>{const c=r['Chain'];if(c)rc[c]=(rc[c]||0)+1;});
+  const rc={};intRows.forEach(r=>{const a=getRetailer(r);if(a&&a!=='Unknown')rc[a]=(rc[a]||0)+1;});if(skyRows.length)rc['Circle K']=(rc['Circle K']||0)+skyRows.length;advRows.forEach(r=>{const c=r['Chain'];if(c)rc[c]=(rc[c]||0)+1;});
   const tr=sortedEntries(rc),mr=tr[0]?tr[0][1]:1;
   const ts=sortedEntries(stateCounts),ms=ts[0]?ts[0][1]:1;
   return`
@@ -790,7 +799,9 @@ function initMap(){
   const proj=d3.geoAlbersUsa().scale(W*1.25).translate([W/2,H/2]);const path=d3.geoPath().projection(proj);
   const mx=Math.max(...Object.values(sc),1);const cs=d3.scaleSequential([0,mx],d3.interpolate('#e2e8f0','#5b8def'));
   const tt=document.getElementById('state-tooltip');
-  fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r=>r.json()).then(us=>{
+  const mapUrls=['https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json','https://unpkg.com/us-atlas@3/states-10m.json','https://d3js.org/us-10m.v1.json'];
+  function tryFetch(urls,i){if(i>=urls.length)return Promise.reject(new Error('All CDN sources failed'));return fetch(urls[i]).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).catch(()=>tryFetch(urls,i+1));}
+  tryFetch(mapUrls,0).then(us=>{
     const states=topojson.feature(us,us.objects.states);const ia=getStateIdMap();
     svg.append('g').selectAll('path').data(states.features).join('path').attr('d',path).attr('fill',d=>{const a=ia[d.id];const c=sc[a]||0;return c?cs(c):'#e2e8f0';}).attr('stroke','#fff').attr('stroke-width',0.5).style('cursor','pointer')
       .on('mousemove',(e,d)=>{const a=ia[d.id]||'';const c=sc[a]||0;tt.style.display='block';tt.style.left=(e.offsetX+10)+'px';tt.style.top=(e.offsetY-28)+'px';tt.textContent=a+': '+c+' visit'+(c!==1?'s':'');})
