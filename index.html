@@ -208,9 +208,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .visit-note{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
 .visit-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--text-3);}
 .visit-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.visit-photo{width:120px;height:90px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
+.visit-photo{width:180px;height:135px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
 .visit-photo:hover{transform:scale(1.03);}
-.adv-photo{width:260px;height:200px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+.adv-photo{width:280px;height:210px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
 
 /* PROGRESS */
 .prog-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -485,12 +485,31 @@ function totalPOSAll(){
 }
 
 function getRetailer(r){
-  let n=(r['Account serviced']||r['Store Location (City)']||'Unknown').trim();
+  // Prefer Account serviced, but reject form artifacts like "yes"/"no"/blanks
+  const JUNK=/^(yes|no|n\/a|na|none|\-|\.|true|false)$/i;
+  const acct=(r['Account serviced']||'').trim();
+  const city=(r['Store Location (City)']||'').trim();
+  let n=(!acct||JUNK.test(acct))?city:acct;
+  if(!n||JUNK.test(n))n='Unknown';
   if(/sprouts/i.test(n))return'Sprouts';if(/circle\s*k/i.test(n))return'Circle K';
   if(/target/i.test(n))return'Target';if(/vitamin\s*shoppe?/i.test(n))return'Vitamin Shoppe';
   if(/bristol\s*farms/i.test(n))return'Bristol Farms';if(/gelson/i.test(n))return"Gelson's";
   if(/7[\-\s]?eleven/i.test(n))return'7-Eleven';if(/ampm/i.test(n))return'AMPM';
-  if(/crossfit/i.test(n))return'CrossFit';return n;
+  if(/crossfit/i.test(n))return'CrossFit';
+  if(/michael\s*kors/i.test(n))return'Michael Kors';
+  if(/liquor/i.test(n))return'Liquor Store';
+  return n;
+}
+
+function cleanLoc(r){
+  const JUNK=/^(yes|no|n\/a|na|none|\-|\.|true|false|\d+)$/i;
+  const city=(r['Store Location (City)']||'').trim();
+  const acct=(r['Account serviced']||'').trim();
+  if(!city||JUNK.test(city)){
+    if(acct&&!JUNK.test(acct))return acct;
+    return'Unlabeled';
+  }
+  return city;
 }
 
 function calcRetailerPOS(rows){
@@ -581,6 +600,8 @@ function render(){
   else if(p==='advantage-recap')div.innerHTML=renderAdvRecap(params);
   else if(p==='advantage-chain')div.innerHTML=renderAdvChain(params);
   else if(p==='state-detail')div.innerHTML=renderStateDetail(params);
+  else if(p==='retailer-detail')div.innerHTML=renderRetailerDetail(params);
+  else if(p==='chain-detail')div.innerHTML=renderChainDetail(params);
   else if(p==='config')div.innerHTML=renderConfig();
   else div.innerHTML='<div class="empty"><div class="empty-text">Page not found.</div></div>';
   el.appendChild(div);
@@ -691,9 +712,22 @@ function renderPOSDetail(params){
 
   <div class="tab-pane active" data-tab="retailer">
     <div class="list-card" style="margin-bottom:16px">
-      ${retailerPOS.filter(([,d])=>d[type]>0).map(([name,d])=>`<div class="list-item"><div class="list-item-main"><div class="list-item-title">${esc(name)}</div><div class="list-item-sub">${d.visits} total visit${d.visits!==1?'s':''}</div></div><div class="list-item-right"><div class="list-count" style="color:${color}">${d[type]}</div><div class="list-date">placements</div></div></div>`).join('')||'<div class="empty"><div class="empty-text">No Internal Team data for this type.</div></div>'}
+      ${retailerPOS.filter(([,d])=>d[type]>0).map(([name,d])=>{
+        const firstRow=d.rows[0];
+        const loc=firstRow?firstRow['Store Location (City)']||name:name;
+        return`<div class="list-item card-lift" style="cursor:pointer" onclick="nav('retailer-detail',{retailer:'${esc(name)}',type:'${esc(type)}'})">
+          <div class="list-item-main">
+            <div class="list-item-title">${esc(name)}</div>
+            <div class="list-item-sub">${d.visits} total visit${d.visits!==1?'s':''} · ${d[type]} placement${d[type]!==1?'s':''}</div>
+          </div>
+          <div class="list-item-right" style="display:flex;align-items:center;gap:8px">
+            <div class="list-count" style="color:${color}">${d[type]}</div>
+            <svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg>
+          </div>
+        </div>`;
+      }).join('')||'<div class="empty"><div class="empty-text">No Internal Team data for this type.</div></div>'}
     </div>
-    ${hasAdv?`<div class="card"><div style="font-weight:600;font-size:13px;margin-bottom:10px">Advantage Program — by recap</div>${advSum.map(s=>{const nt=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);const wb=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);const val=isNT?nt:wb;return'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px">Recap '+esc(s['Recap Date'])+'</span><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+val+'</span></div>';}).join('')}</div>`:''}
+      ${hasAdv?'<div class="card"><div style="font-weight:600;font-size:13px;margin-bottom:10px">Advantage — by recap</div>'+advSum.map(s=>{const nt=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);const wb=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);const val=isNT?nt:wb;return'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})">'+'<span style="flex:1;font-size:13px">Recap '+esc(s['Recap Date'])+'</span><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+val+'</span></div>';}).join('')+'</div>':''}
   </div>
 
   <div class="tab-pane" data-tab="source">
@@ -702,7 +736,7 @@ function renderPOSDetail(params){
       ${hasAdv?`<div class="card" style="border-top:3px solid var(--advantage)"><div class="card-label" style="color:var(--advantage)">Advantage</div><div class="card-value" style="color:var(--advantage)">${advTotal}</div><div class="card-sub">stores with ${esc(type)}</div></div>`:''}
       <div class="card" style="border-top:3px solid var(--skyu)"><div class="card-label" style="color:var(--skyu)">SkyU · Circle K</div><div class="card-value" style="color:var(--skyu)">—</div><div class="card-sub">not in email data</div></div>
     </div>
-    ${intMatches.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span>'+posTag(type)+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,150))+(note.length>150?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.slice(0,4).map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'">').join('')+'</div>':'')+'</div>';}).join('')}
+    ${(()=>{const SPS=10,spk='srcpg_'+type.replace(/\s/g,'');if(!state[spk])state[spk]=1;const spg=state[spk],stot=intMatches.length,stp=Math.ceil(stot/SPS),spaged=intMatches.slice((spg-1)*SPS,spg*SPS);const spag=stp>1?'<div class="pagination">'+( spg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+(spg)+' of '+(stp)+'</span>'+(spg<stp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg+1)+';render()">Next →</button>':'')+'</div>':'';return spaged.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span>'+posTag(type)+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,180))+(note.length>180?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')+spag;})()}
   </div>
 
   ${hasAdv?`<div class="tab-pane" data-tab="campaign">
@@ -725,7 +759,7 @@ function renderPOSDetail(params){
   </div>`:''}
 
   <div class="tab-pane" data-tab="visits">
-    ${intMatches.length?intMatches.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const tags=getPOS(r);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="source-tag source-tag-internal">INT</span>'+tags.map(t=>posTag(t)).join('')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.slice(0,6).map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'">').join('')+'</div>':'')+'</div>';}).join(''):'<div class="empty"><div class="empty-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="24" height="24" rx="3"/><path d="M10 16H22M10 11H22M10 21H16"/></svg></div><div class="empty-text">No visits with '+esc(type)+' in this date range.</div></div>'}
+    ${(()=>{if(!intMatches.length)return'<div class="empty"><div class="empty-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="24" height="24" rx="3"/><path d="M10 16H22M10 11H22M10 21H16"/></svg></div><div class="empty-text">No visits with '+esc(type)+' in this date range.</div></div>';const VPS=10,vpk='vispg_'+type.replace(/\s/g,'');if(!state[vpk])state[vpk]=1;const vpg=state[vpk],vtot=intMatches.length,vtp=Math.ceil(vtot/VPS),vpaged=intMatches.slice((vpg-1)*VPS,vpg*VPS);const vpag=vtp>1?'<div class="pagination">'+( vpg>1?'<button class="page-btn" onclick="state[\''+vpk+'\']='+( vpg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+(vpg)+' of '+(vtp)+' · '+vtot+' total</span>'+(vpg<vtp?'<button class="page-btn" onclick="state[\''+vpk+'\']='+( vpg+1)+';render()">Next →</button>':'')+'</div>':'';return vpaged.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const tags=getPOS(r);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="source-tag source-tag-internal">INT</span>'+tags.map(t=>posTag(t)).join('')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')+vpag;})()}
   </div>
 </div>`;
 }
@@ -747,7 +781,7 @@ function renderCoverage(){
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div><div class="section-sub">All sources combined</div></div>
     <div class="list-card" style="padding:14px 16px">
-      ${tr.length?tr.map(([n,c])=>'<div class="bar-list-item"><span class="bar-list-name">'+esc(n)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/mr*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No data in range.</div></div>'}
+      ${tr.length?tr.map(([n,c])=>'<div class="bar-list-item" style="cursor:pointer" onclick="nav(\'internal\')">'+'<span class="bar-list-name">'+esc(n)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/mr*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No data in range.</div></div>'}
     </div>
   </div>
 </div>
@@ -836,28 +870,46 @@ ${filtered.length?filtered.map(i=>{const cat=ISSUE_CATS.find(c=>c.key===i.cat);r
 
 // INTERNAL
 function renderInternal(){
-  const rows=fi();const lm={};
-  rows.forEach(r=>{const loc=r['Store Location (City)']||'Unlabeled';if(!lm[loc])lm[loc]={count:0,last:'',pos:new Set()};lm[loc].count++;const d=r['Timestamp'];if(!lm[loc].last||d>lm[loc].last)lm[loc].last=d;getPOS(r).forEach(t=>lm[loc].pos.add(t));});
-  const sorted=Object.entries(lm).sort((a,b)=>b[1].count-a[1].count);
-  return`
-<div class="section-hd"><div class="section-title" style="font-size:20px">Internal Team</div><div class="section-sub">${rows.length} visits · ${sorted.length} locations</div></div>
-<div class="list-card">
-  ${sorted.length?sorted.map(([loc,info])=>'<div class="list-item" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(loc).replace(/"/g,'&quot;')+'})"><div class="list-icon" style="background:var(--internal-bg);color:var(--internal)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="6" r="3"/><path d="M2 14C2 11.5 4.7 10 8 10C11.3 10 14 11.5 14 14"/></svg></div><div class="list-item-main"><div class="list-item-title">'+esc(loc)+'</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">'+[...info.pos].map(t=>posTag(t)).join('')+'</div></div><div class="list-item-right"><div class="list-count">'+info.count+'</div><div class="list-date">'+fmtShort(info.last)+'</div></div></div>').join(''):'<div class="empty"><div class="empty-text">No visits in range.</div></div>'}
-</div>`;
+  const rows=fi();
+  const rm={};
+  rows.forEach(r=>{
+    const chain=getRetailer(r);const loc=cleanLoc(r);
+    if(!rm[chain])rm[chain]={count:0,last:'',pos:new Set(),locs:{}};
+    rm[chain].count++;const d=r['Timestamp'];
+    if(!rm[chain].last||d>rm[chain].last)rm[chain].last=d;
+    getPOS(r).forEach(t=>rm[chain].pos.add(t));
+    if(!rm[chain].locs[loc])rm[chain].locs[loc]={count:0,last:''};
+    rm[chain].locs[loc].count++;
+    if(!rm[chain].locs[loc].last||d>rm[chain].locs[loc].last)rm[chain].locs[loc].last=d;
+  });
+  const chains=Object.entries(rm).sort((a,b)=>b[1].count-a[1].count);
+  const totalLocs=Object.values(rm).reduce((sum,c)=>sum+Object.keys(c.locs).length,0);
+  function chainRow(chain,info){
+    const locs=Object.entries(info.locs).sort((a,b)=>b[1].count-a[1].count);
+    const hdr='<div class="list-item" style="background:var(--surface2);cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(chain).replace(/"/g,'&quot;')+'})"><div class="list-icon" style="background:var(--internal-bg);color:var(--internal)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="5" width="14" height="9" rx="1.5"/><path d="M5 5V3.5C5 2.7 5.7 2 6.5 2H9.5C10.3 2 11 2.7 11 3.5V5"/><path d="M5 9H11"/></svg></div><div class="list-item-main"><div class="list-item-title" style="font-size:14px;font-weight:700">'+esc(chain)+'</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">'+locs.length+' location'+(locs.length!==1?'s':'')+' · click to see all</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">'+[...info.pos].map(t=>posTag(t)).join('')+'</div></div><div class="list-item-right"><div class="list-count">'+info.count+'</div><div class="list-date">'+fmtShort(info.last)+'</div></div></div>';
+    const locRows=locs.map(([loc,li])=>'<div class="list-item" style="padding-left:52px;cursor:pointer;border-top:1px solid var(--border)" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(loc).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title" style="font-size:13px">'+esc(loc)+'</div></div><div class="list-item-right"><div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600">'+li.count+'</div></div></div>').join('');
+    return '<div style="border-bottom:1px solid var(--border)">'+hdr+locRows+'</div>';
+  }
+  return '<div class="section-hd"><div class="section-title" style="font-size:20px">Internal Team</div><div class="section-sub">'+rows.length+' visits · '+totalLocs+' locations · '+chains.length+' retailers</div></div><div class="list-card">'+(chains.length?chains.map(([c,i])=>chainRow(c,i)).join(''):'<div class="empty"><div class="empty-text">No visits in range.</div></div>')+'</div>';
 }
 
 function renderInternalDetail(params){
   const loc=params&&params.loc?params.loc:'';
-  const rows=fi().filter(r=>(r['Store Location (City)']||'Unlabeled')===loc);
+  const rows=fi().filter(r=>cleanLoc(r)===loc);
   rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
   const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
+  const IPS=15,ipk='idpg_'+loc.replace(/[^a-z0-9]/gi,'');
+  if(!state[ipk])state[ipk]=1;
+  const ipg=state[ipk],itot=rows.length,itp=Math.ceil(itot/IPS),ipaged=rows.slice((ipg-1)*IPS,ipg*IPS);
+  const ipag=itp>1?'<div class="pagination">'+(ipg>1?'<button class="page-btn" onclick="state[\''+ipk+'\']='+( ipg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+ipg+' of '+itp+' · '+itot+' total</span>'+(ipg<itp?'<button class="page-btn" onclick="state[\''+ipk+'\']='+( ipg+1)+';render()">Next →</button>':'')+'</div>':'';
   return`
 <div class="detail-hd">
   <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
   <div class="detail-title">${esc(loc)}</div>
-  <div class="detail-sub">${rows.length} visit${rows.length!==1?'s':''} · Internal Team</div>
+  <div class="detail-sub">${itot} visit${itot!==1?'s':''} · Internal Team</div>
 </div>
-${rows.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'">').join('')+'</div>':'')+'</div>';}).join('')}
+${ipaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+${ipag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':''}`;
 }
 
@@ -954,6 +1006,50 @@ function renderStateDetail(params){
   ${rows.length?rows.map(r=>'<div class="list-item" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="list-item-sub">'+esc(r['City']||'')+'</div></div><div class="list-item-right"><div class="list-date">'+fmtShort(r['Visit Date'])+'</div></div></div>').join(''):'<div class="empty"><div class="empty-text">No stores in this state.</div></div>'}
 </div>`;
 }
+
+// CHAIN DETAIL
+function renderChainDetail(params){
+  const chain=params&&params.chain?params.chain:'';
+  const rows=fi().filter(r=>getRetailer(r)===chain);
+  rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
+  const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
+  const locs=[...new Set(rows.map(r=>cleanLoc(r)))];
+  const CPS=15,cpk='cdpg_'+chain.replace(/[^a-z0-9]/gi,'');
+  if(!state[cpk])state[cpk]=1;
+  const cpg=state[cpk],ctot=rows.length,ctp=Math.ceil(ctot/CPS),cpaged=rows.slice((cpg-1)*CPS,cpg*CPS);
+  const cpag=ctp>1?'<div class="pagination">'+(cpg>1?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+cpg+' of '+ctp+' · '+ctot+' total</span>'+(cpg<ctp?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg+1)+';render()">Next →</button>':'')+'</div>':'';
+
+  const locList=locs.length>1?'<div class="list-card" style="margin-bottom:20px;padding:10px 0"><div style="padding:6px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3)">Locations</div>'+locs.map(loc=>'<div class="list-item" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(loc).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title" style="font-size:13px">'+esc(loc)+'</div></div><div class="list-item-right"><div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600">'+rows.filter(r=>cleanLoc(r)===loc).length+'</div><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="10" height="10"><path d="M4 2L8 6L4 10"/></svg></div></div>').join('')+'</div>':'';
+
+  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:12px;font-weight:600;color:var(--text-3)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
+
+  return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' across '+locs.length+' location'+(locs.length!==1?'s':'')+' · Internal Team</div></div>'+locList+'<div style="font-size:13px;font-weight:600;color:var(--text-3);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em">All Visits</div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
+}
+
+
+// RETAILER DETAIL — all visits for a retailer with a specific POS type
+function renderRetailerDetail(params){
+  const retailer=params&&params.retailer?params.retailer:'';
+  const type=params&&params.type?params.type:'';
+  const color=POS_COLORS[type]||'var(--accent)';
+  const rows=fi().filter(r=>getRetailer(r)===retailer&&getPOS(r).includes(type));
+  rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
+  const RPS=10,rpk='rdpg_'+retailer.replace(/[^a-z0-9]/gi,'');
+  if(!state[rpk])state[rpk]=1;
+  const rpg=state[rpk],rtot=rows.length,rtp=Math.ceil(rtot/RPS),rpaged=rows.slice((rpg-1)*RPS,rpg*RPS);
+  const rpag=rtp>1?'<div class="pagination">'+(rpg>1?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+rpg+' of '+rtp+' \u00b7 '+rtot+' total</span>'+(rpg<rtp?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
+  const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
+  return`
+<div class="detail-hd">
+  <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
+  <div class="detail-title">${esc(retailer)}</div>
+  <div class="detail-sub">${rtot} visit${rtot!==1?'s':''} with ${esc(type)} \u00b7 Internal Team</div>
+</div>
+${rpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>'+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+${rpag}
+${!rows.length?'<div class="empty"><div class="empty-text">No visits found for this retailer and POS type.</div></div>':''}`;
+}
+
 
 function renderConfig(){
   return`
