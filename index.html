@@ -208,9 +208,9 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .visit-note{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
 .visit-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--text-3);}
 .visit-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.visit-photo{width:240px;height:180px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
+.visit-photo{width:100%;max-width:420px;height:auto;min-height:200px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
 .visit-photo:hover{transform:scale(1.03);}
-.adv-photo{width:340px;height:255px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
+.adv-photo{width:100%;max-width:480px;height:auto;min-height:240px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
 
 /* PROGRESS */
 .prog-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -542,7 +542,7 @@ function getAllIssues(){
 }
 
 function skyuCity(r){const m=(r['Source Email Subject']||'').match(/Circle K @ (.+?) task/);return m?m[1].trim():(r['Store']||'Unlabeled');}
-function driveThumb(url){if(!url)return null;const m=url.match(/[-\w]{25,}/);if(!m)return null;return'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w400';}
+function driveThumb(url){if(!url)return null;const m=url.match(/[-\w]{25,}/);if(!m)return null;return'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w800';}
 function dLinks(str){if(!str)return[];return str.split(',').map(s=>s.trim()).filter(Boolean).map(driveThumb).filter(Boolean);}
 function advPhotos(str){if(!str)return[];return str.split('|').map(s=>s.trim()).filter(Boolean);}
 
@@ -765,7 +765,7 @@ function renderCoverage(){
 <div class="section-hd"><div class="section-title" style="font-size:20px">Coverage</div><div class="section-sub">Where are we active?</div></div>
 <div class="grid-2" style="gap:24px">
   <div>
-    <div class="section-hd"><div class="section-title">US Map</div><div class="section-sub">Advantage stores by state</div></div>
+    <div class="section-hd"><div class="section-title">US Map</div><div class="section-sub">Stores by state (Advantage data — Internal Team locations lack state field)</div></div>
     <div class="card" style="padding:16px"><div id="map-container" style="position:relative"><svg id="us-map"></svg><div class="state-tooltip" id="state-tooltip"></div></div><div style="font-size:11px;color:var(--text-3);margin-top:8px;text-align:center">Click a state for store details</div></div>
   </div>
   <div>
@@ -863,24 +863,16 @@ function renderInternal(){
   const rows=fi();
   const rm={};
   rows.forEach(r=>{
-    const chain=getRetailer(r);const loc=cleanLoc(r);
-    if(!rm[chain])rm[chain]={count:0,last:'',pos:new Set(),locs:{}};
-    rm[chain].count++;const d=r['Timestamp'];
+    const chain=getRetailer(r);
+    if(!rm[chain])rm[chain]={count:0,last:'',pos:new Set()};
+    rm[chain].count++;
+    const d=r['Timestamp'];
     if(!rm[chain].last||d>rm[chain].last)rm[chain].last=d;
     getPOS(r).forEach(t=>rm[chain].pos.add(t));
-    if(!rm[chain].locs[loc])rm[chain].locs[loc]={count:0,last:''};
-    rm[chain].locs[loc].count++;
-    if(!rm[chain].locs[loc].last||d>rm[chain].locs[loc].last)rm[chain].locs[loc].last=d;
   });
   const chains=Object.entries(rm).sort((a,b)=>b[1].count-a[1].count);
-  const totalLocs=Object.values(rm).reduce((sum,c)=>sum+Object.keys(c.locs).length,0);
-  function chainRow(chain,info){
-    const locs=Object.entries(info.locs).sort((a,b)=>b[1].count-a[1].count);
-    const hdr='<div class="list-item" style="background:var(--surface2);cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(chain).replace(/"/g,'&quot;')+'})"><div class="list-icon" style="background:var(--internal-bg);color:var(--internal)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="5" width="14" height="9" rx="1.5"/><path d="M5 5V3.5C5 2.7 5.7 2 6.5 2H9.5C10.3 2 11 2.7 11 3.5V5"/><path d="M5 9H11"/></svg></div><div class="list-item-main"><div class="list-item-title" style="font-size:14px;font-weight:700">'+esc(chain)+'</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">'+locs.length+' location'+(locs.length!==1?'s':'')+' · click to see all</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">'+[...info.pos].map(t=>posTag(t)).join('')+'</div></div><div class="list-item-right"><div class="list-count">'+info.count+'</div><div class="list-date">'+fmtShort(info.last)+'</div></div></div>';
-    const locRows=locs.map(([loc,li])=>'<div class="list-item" style="padding-left:52px;cursor:pointer;border-top:1px solid var(--border)" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(loc).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title" style="font-size:13px">'+esc(loc)+'</div></div><div class="list-item-right"><div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600">'+li.count+'</div></div></div>').join('');
-    return '<div style="border-bottom:1px solid var(--border)">'+hdr+locRows+'</div>';
-  }
-  return '<div class="section-hd"><div class="section-title" style="font-size:20px">Internal Team</div><div class="section-sub">'+rows.length+' visits · '+totalLocs+' locations · '+chains.length+' retailers</div></div><div class="list-card">'+(chains.length?chains.map(([c,i])=>chainRow(c,i)).join(''):'<div class="empty"><div class="empty-text">No visits in range.</div></div>')+'</div>';
+  const items=chains.map(([chain,info])=>'<div class="list-item" style="cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(chain).replace(/"/g,'&quot;')+'})"><div class="list-icon" style="background:var(--internal-bg);color:var(--internal)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="5" width="14" height="9" rx="1.5"/><path d="M5 5V3.5C5 2.7 5.7 2 6.5 2H9.5C10.3 2 11 2.7 11 3.5V5"/><path d="M5 9H11"/></svg></div><div class="list-item-main"><div class="list-item-title" style="font-size:14px;font-weight:700">'+esc(chain)+'</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">'+[...info.pos].map(t=>posTag(t)).join('')+'</div></div><div class="list-item-right" style="display:flex;align-items:center;gap:8px"><div class="list-count" style="font-size:16px">'+info.count+'</div><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg></div></div>').join('');
+  return '<div class="section-hd"><div class="section-title" style="font-size:20px">Internal Team</div><div class="section-sub">'+rows.length+' visits \u00b7 '+chains.length+' retailers</div></div><div class="list-card">'+(items||'<div class="empty"><div class="empty-text">No visits in range.</div></div>')+'</div>';
 }
 
 function renderInternalDetail(params){
@@ -1001,19 +993,15 @@ function renderChainDetail(params){
   const rows=fi().filter(r=>getRetailer(r)===chain);
   rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
   const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
-  const locs=[...new Set(rows.map(r=>cleanLoc(r)))];
   const CPS=15,cpk='cdpg_'+chain.replace(/[^a-z0-9]/gi,'');
   if(!state[cpk])state[cpk]=1;
   const cpg=state[cpk],ctot=rows.length,ctp=Math.ceil(ctot/CPS),cpaged=rows.slice((cpg-1)*CPS,cpg*CPS);
-  const cpag=ctp>1?'<div class="pagination">'+(cpg>1?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+cpg+' of '+ctp+' · '+ctot+' total</span>'+(cpg<ctp?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg+1)+';render()">Next →</button>':'')+'</div>':'';
+  const cpag=ctp>1?'<div class="pagination">'+(cpg>1?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+cpg+' of '+ctp+' \u00b7 '+ctot+' total</span>'+(cpg<ctp?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
 
-  const locList=locs.length>1?'<div class="list-card" style="margin-bottom:20px;padding:10px 0"><div style="padding:6px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3)">Locations</div>'+locs.map(loc=>'<div class="list-item" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(loc).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title" style="font-size:13px">'+esc(loc)+'</div></div><div class="list-item-right"><div style="font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600">'+rows.filter(r=>cleanLoc(r)===loc).length+'</div><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="10" height="10"><path d="M4 2L8 6L4 10"/></svg></div></div>').join('')+'</div>':'';
+  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
 
-  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:12px;font-weight:600;color:var(--text-3)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
-
-  return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' across '+locs.length+' location'+(locs.length!==1?'s':'')+' · Internal Team</div></div>'+locList+'<div style="font-size:13px;font-weight:600;color:var(--text-3);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em">All Visits</div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
+  return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' \u00b7 Internal Team</div></div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
 }
-
 
 // RETAILER DETAIL — all visits for a retailer with a specific POS type
 function renderRetailerDetail(params){
