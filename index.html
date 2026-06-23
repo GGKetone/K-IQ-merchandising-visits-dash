@@ -346,6 +346,14 @@ a{color:var(--accent);}
 }
 @media(max-width:480px){.grid-4,.grid-3,.grid-6{grid-template-columns:repeat(2,1fr);}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+/* LIGHTBOX */
+#lightbox{position:fixed;inset:0;background:rgba(15,23,42,0.85);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(6px);cursor:pointer;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:90vw;max-height:85vh;object-fit:contain;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,0.4);cursor:default;}
+#lightbox-close{position:fixed;top:16px;right:20px;background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;z-index:2001;}
+#lightbox-close:hover{background:rgba(255,255,255,0.3);}
+#lightbox-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.5);font-size:12px;font-family:var(--mono);z-index:2001;}
 </style>
 </head>
 <body>
@@ -360,6 +368,7 @@ a{color:var(--accent);}
   </div>
 </div>
 <div id="overlay" onclick="closeSidebar()"></div>
+<div id="lightbox" onclick="closeLightbox()"><button id="lightbox-close" onclick="closeLightbox()">✕</button><img id="lightbox-img" src="" onclick="event.stopPropagation()"><div id="lightbox-hint">Click outside or press Esc to close</div></div>
 <div id="app">
   <nav id="sidebar">
     <div class="sb-brand">
@@ -592,6 +601,21 @@ function posTag(type){
   return'<span class="pos-tag pos-tag-'+cls+'" style="color:'+color+'">'+( icons[type]||'')+'<span>'+esc(type)+'</span></span>';
 }
 
+// LIGHTBOX
+function openLightbox(url){
+  const el=document.getElementById('lightbox');
+  const img=document.getElementById('lightbox-img');
+  // Use high-res version
+  img.src=url.replace(/sz=w\d+/,'sz=w1600');
+  el.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
+
 // RENDER
 function render(){
   const el=document.getElementById('content');el.innerHTML='';
@@ -668,13 +692,13 @@ function renderDash(){
 <div class="grid-2">
   <div>
     <div class="section-hd"><div class="section-title">Recent Activity</div></div>
-    <div class="list-card">
+    <div class="list-card" style="max-height:480px;overflow-y:auto">
       ${recent.length?recent.map(s=>'<div class="stream-item" style="padding:11px 14px"><div class="stream-dot stream-dot-'+s.source+'"></div><div class="stream-body"><div style="display:flex;align-items:center;gap:6px"><span class="stream-title">'+esc(s.title)+'</span><span class="source-tag source-tag-'+s.source+'">'+(s.source==='internal'?'INT':s.source==='skyu'?'SKY':'ADV')+'</span></div>'+(s.note?'<div class="stream-note">'+esc(s.note.substring(0,80))+(s.note.length>80?'…':'')+'</div>':'')+'<div class="stream-meta">'+fmtShort(s.date)+(s.account?' · '+esc(s.account):'')+'</div></div></div>').join(''):'<div class="empty"><div class="empty-text">No recent activity.</div></div>'}
     </div>
   </div>
   <div>
     <div class="section-hd"><div class="section-title">Source Breakdown</div></div>
-    <div class="list-card" style="padding:16px;margin-bottom:16px">
+    <div class="list-card" style="padding:16px;margin-bottom:16px;max-height:320px;overflow-y:auto">
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><span class="badge badge-internal">Internal</span><span style="flex:1;font-weight:500">${intRows.length} visits</span><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">${intRows.filter(r=>(r['New or Existing']||'').toLowerCase()==='new').length} new</span></div>
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><span class="badge badge-skyu" style="background:var(--skyu-bg);color:var(--skyu)">SkyU</span><span style="flex:1;font-weight:500">${skyRows.length} tasks</span><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Circle K</span></div>
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span class="badge badge-advantage" style="background:var(--advantage-bg);color:var(--advantage)">Advantage</span><span style="flex:1;font-weight:500">${advRows.length} stores</span><span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">${[...new Set(advRows.map(r=>r['Chain']).filter(Boolean))].length} chains</span></div>
@@ -688,11 +712,10 @@ function renderDash(){
 </div>`;
 }
 
-// POS DETAIL
+// POS DETAIL — unified execution view, all sources combined
 function renderPOSDetail(params){
   const type=params.type||'Neck Tag';
   const color=POS_COLORS[type]||'var(--accent)';
-  const cls=POS_CLASS[type]||'';
   const intRows=fi(),advSum=fsum(),advRows=fa();
   const intMatches=intRows.filter(r=>getPOS(r).includes(type));
   const isNT=type==='Neck Tag',isWB=type==='Wobbler';
@@ -700,67 +723,112 @@ function renderPOSDetail(params){
   if(isNT)advSum.forEach(s=>{advTotal+=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);});
   if(isWB)advSum.forEach(s=>{advTotal+=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);});
   const total=intMatches.length+(isNT||isWB?advTotal:0);
-  const retailerPOS=calcRetailerPOS(intMatches);
   const hasAdv=(isNT||isWB)&&advSum.length>0;
+
+  // Advantage store records from recaps that include this POS type
+  const advRecapDates=hasAdv?advSum.map(s=>s['Recap Date']):[];
+  const advStoreRecords=hasAdv?advRows.filter(r=>advRecapDates.includes(r['Recap Date'])):[];
+
+  // Combined records for All Records tab
+  const combined=[];
+  intMatches.forEach(r=>{
+    const k=Object.keys(r).find(k=>k.includes('Next steps'));
+    const note=k?r[k]:'';
+    const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];
+    combined.push({source:'internal',title:cleanLoc(r),sub:getRetailer(r),date:r['Timestamp'],note,photos,tags:getPOS(r),flagged:isFlagged(note),isNew:(r['New or Existing']||'').toLowerCase()==='new',raw:r});
+  });
+  advStoreRecords.forEach(r=>{
+    const photos=advPhotos(r['Photos']||'');
+    combined.push({source:'advantage',title:(r['Chain']||'')+' #'+(r['Store #']||''),sub:(r['City']||'')+(r['State']?', '+r['State']:''),date:r['Visit Date'],note:'Recap '+r['Recap Date'],photos,tags:[],flagged:false,isNew:false,raw:r});
+  });
+  combined.sort((a,b)=>(parseDate(b.date)||0)-(parseDate(a.date)||0));
+
+  // Source filter state
+  const sfk='pos_srcf_'+type.replace(/\s/g,'');
+  if(!state[sfk])state[sfk]='all';
+  const srcFilter=state[sfk];
+  const filtered=srcFilter==='all'?combined:combined.filter(r=>r.source===srcFilter);
+
+  // By Retailer — combined from all sources
+  const retMap={};
+  intMatches.forEach(r=>{const n=getRetailer(r);if(!retMap[n])retMap[n]={count:0,posCount:0,source:'internal'};retMap[n].count++;retMap[n].posCount++;});
+  if(hasAdv){advStoreRecords.forEach(r=>{const n=r['Chain']||'Unknown';if(!retMap[n])retMap[n]={count:0,posCount:0,source:'advantage'};retMap[n].count++;});}
+  const retList=Object.entries(retMap).sort((a,b)=>b[1].count-a[1].count);
+
+  // Pagination for All Records
+  const RPS=12,rpk='posrpg_'+type.replace(/\s/g,'');
+  if(!state[rpk])state[rpk]=1;
+  const rpg=state[rpk],rtot=filtered.length,rtp=Math.ceil(rtot/RPS),rpaged=filtered.slice((rpg-1)*RPS,rpg*RPS);
+
+  // Icons
   const icons={'Neck Tag':'<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L13 8H17L13 11L15 17L10 14L5 17L7 11L3 8H7L10 2Z"/></svg>','Wobbler':'<svg viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="4" fill="white"/></svg>','Counter Rack':'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="16" height="11" rx="2"/><path d="M6 6V4M14 6V4"/></svg>','Window Cling':'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="16" height="16" rx="2"/><path d="M7 8H13M7 11H13M7 14H11"/></svg>','Sample':'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 2H13V8L15 14C15.4 15 14.7 16 13.7 16H6.3C5.3 16 4.6 15 5 14L7 8V2Z"/></svg>','Floor Shipper':'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="8" width="16" height="10" rx="2"/><path d="M2 12H18M7 8V5H13V8"/></svg>'};
-  const icon=icons[type]||'';
-  return`
-<div class="detail-hd">
-  <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
-  <div class="pos-drill-hd">
-    <div class="pos-drill-icon" style="background:${color}1a;color:${color}">${icon}</div>
-    <div><div class="pos-drill-title">${esc(type)}</div><div class="text-sm" style="margin-top:2px"><span style="color:var(--internal);cursor:pointer;font-weight:600" onclick="switchTab('pos-tabs','source')">${intMatches.length} from Internal Team</span>${(isNT||isWB)&&advTotal?' <span style="color:var(--text-3)">+</span> <span style="color:var(--advantage);cursor:pointer;font-weight:600" onclick="switchTab(\'pos-tabs\',\'campaign\')">'+advTotal+' from Advantage</span>':''}</div></div>
-    <div class="pos-drill-total" style="color:${color}">${total}</div>
-  </div>
-</div>
-<div id="pos-tabs">
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="retailer" onclick="switchTab('pos-tabs','retailer')">By Retailer</button>
-    <button class="tab-btn" data-tab="source" onclick="switchTab('pos-tabs','source')">By Source</button>
-    ${hasAdv?'<button class="tab-btn" data-tab="campaign" onclick="switchTab(\'pos-tabs\',\'campaign\')">By Campaign</button>':''}
-    <button class="tab-btn" data-tab="visits" onclick="switchTab('pos-tabs','visits')">All Visits</button>
-  </div>
 
-  <div class="tab-pane active" data-tab="retailer">
-    <div class="list-card" style="margin-bottom:16px">
-      ${retailerPOS.map(([name,d])=>'<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'retailer-detail\',{retailer:'+JSON.stringify(name).replace(/"/g,'&quot;')+',type:'+JSON.stringify(type).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(name)+'</div><div class="list-item-sub">'+d.visits+' visit'+(d.visits!==1?'s':'')+' · '+(d[type]||0)+' placement'+((d[type]||0)!==1?'s':'')+'</div></div><div class="list-item-right" style="display:flex;align-items:center;gap:8px"><div class="list-count" style="color:'+(d[type]?color:'var(--text-3)')+'">'+( d[type]||'—')+'</div><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg></div></div>').join('')}
-      ${hasAdv?'<div style="margin-top:12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);padding:4px 0">Advantage Chains</div>'+[...advRows.reduce((m,r)=>{const c=r['Chain'];if(c&&!m.has(c))m.set(c,0);if(c)m.set(c,m.get(c)+1);return m;},new Map()).entries()].sort((a,b)=>b[1]-a[1]).map(([c,n])=>'<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(c).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(c)+'</div><div class="list-item-sub">'+n+' store'+(n!==1?'s':'')+' visited</div></div><div class="list-item-right"><svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg></div></div>').join(''):''}
-    </div>
-      ${hasAdv?'<div class="card"><div style="font-weight:600;font-size:13px;margin-bottom:10px">Advantage — by recap</div>'+advSum.map(s=>{const nt=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);const wb=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);const val=isNT?nt:wb;return'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})">'+'<span style="flex:1;font-size:13px">Recap '+esc(s['Recap Date'])+'</span><span style="font-family:var(--mono);font-weight:700;color:'+color+'">'+val+'</span></div>';}).join('')+'</div>':''}
-  </div>
+  // Build header
+  var html='<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>'
+    +'<div class="pos-drill-hd"><div class="pos-drill-icon" style="background:'+color+'1a;color:'+color+'">'+(icons[type]||'')+'</div>'
+    +'<div><div class="pos-drill-title">'+esc(type)+'</div><div class="text-muted text-sm" style="margin-top:2px">Placed across all sources</div></div>'
+    +'<div class="pos-drill-total" style="color:'+color+'">'+total+'</div></div></div>';
 
-  <div class="tab-pane" data-tab="source">
-    <div class="grid-3" style="margin-bottom:20px">
-      <div class="card" style="border-top:3px solid var(--internal);cursor:pointer" onclick="switchTab('pos-tabs','visits')"><div class="card-label" style="color:var(--internal)">Internal Team</div><div class="card-value" style="color:var(--internal)">${intMatches.length}</div><div class="card-sub">visits with ${esc(type)} — click to see all</div></div>
-      ${hasAdv?`<div class="card" style="border-top:3px solid var(--advantage)"><div class="card-label" style="color:var(--advantage)">Advantage</div><div class="card-value" style="color:var(--advantage)">${advTotal}</div><div class="card-sub">stores with ${esc(type)}</div></div>`:''}
+  // Source filter chips
+  html+='<div class="filter-bar" style="margin-bottom:16px">';
+  html+='<div class="filter-chip '+(srcFilter==='all'?'active':'')+'" onclick="state[\''+sfk+'\']=\'all\';state[\''+rpk+'\']=1;render()">All ('+combined.length+')</div>';
+  html+='<div class="filter-chip '+(srcFilter==='internal'?'active':'')+'" onclick="state[\''+sfk+'\']=\'internal\';state[\''+rpk+'\']=1;render()">Internal Team ('+combined.filter(r=>r.source==='internal').length+')</div>';
+  if(hasAdv)html+='<div class="filter-chip '+(srcFilter==='advantage'?'active':'')+'" onclick="state[\''+sfk+'\']=\'advantage\';state[\''+rpk+'\']=1;render()">Advantage ('+advStoreRecords.length+')</div>';
+  html+='</div>';
 
-    </div>
-    ${(()=>{const SPS=10,spk='srcpg_'+type.replace(/\s/g,'');if(!state[spk])state[spk]=1;const spg=state[spk],stot=intMatches.length,stp=Math.ceil(stot/SPS),spaged=intMatches.slice((spg-1)*SPS,spg*SPS);const spag=stp>1?'<div class="pagination">'+( spg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+(spg)+' of '+(stp)+'</span>'+(spg<stp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( spg+1)+';render()">Next →</button>':'')+'</div>':'';return spaged.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span>'+posTag(type)+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,180))+(note.length>180?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')+spag;})()}
-  </div>
+  // Tabs
+  html+='<div id="pos-tabs"><div class="tab-bar">'
+    +'<button class="tab-btn active" data-tab="records" onclick="switchTab(\'pos-tabs\',\'records\')">All Records</button>'
+    +'<button class="tab-btn" data-tab="retailer" onclick="switchTab(\'pos-tabs\',\'retailer\')">By Retailer</button>'
+    +'</div>';
 
-  ${hasAdv?`<div class="tab-pane" data-tab="campaign">
-    ${advSum.map(s=>{
-      const recap=s['Recap Date']||'';
-      const nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0;
-      const wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,wbHT=parseInt(s['Wobblers Placed (HT)'])||0;
-      const val=isNT?(nt+ntHT):(wb+wbHT);
-      const visited=parseInt(s['Stores Visited'])||0,target=parseInt(s['Target Goal'])||1;
-      const pct=Math.min(Math.round(visited/target*100),100);
-      const stores=advRows.filter(r=>r['Recap Date']===recap);
-      return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:\''+esc(recap)+'\'})">'
-        +'<div class="cc-hd"><span class="cc-date">Recap '+esc(recap)+'</span><span style="font-size:22px;font-weight:700;color:'+color+';font-family:var(--mono)">'+val+'</span></div>'
-        +'<div class="cc-meta"><span><strong>'+visited+'</strong> / '+target+' stores</span></div>'
-        +(isNT?'<div style="font-size:12px;color:var(--text-3);margin-top:6px">Non-HT: <strong style="color:var(--text)">'+nt+'</strong> · Harris Teeter: <strong style="color:var(--text)">'+ntHT+'</strong></div>':'')
-        +'<div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div>'
-        +'<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px">Store photos from this recap</div><div style="display:flex;flex-wrap:wrap;gap:8px">'+stores.slice(0,6).map(r=>advPhotos(r['Photos']||'').slice(0,1).map(p=>'<img src="'+esc(p)+'" style="width:180px;height:135px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer" loading="lazy" onerror="this.style.display=\'none\'">').join('')).join('')+'</div></div>'
+  // ALL RECORDS TAB
+  html+='<div class="tab-pane active" data-tab="records">';
+  if(!filtered.length){
+    html+='<div class="empty"><div class="empty-text">No records for '+esc(type)+' in this range.</div></div>';
+  }else{
+    rpaged.forEach(r=>{
+      const srcTag=r.source==='internal'?'<span class="source-tag source-tag-internal">INT</span>':'<span class="source-tag source-tag-advantage">ADV</span>';
+      html+='<div class="visit-card '+(r.flagged?'flagged':'')+'">'
+        +'<div class="visit-hd"><span class="visit-date">'+fmtShort(r.date)+'</span>'+srcTag
+        +(r.isNew?'<span class="badge badge-new">New</span>':'')
+        +(r.flagged?'<span class="badge badge-flagged">Flagged</span>':'')
+        +(r.tags.length?r.tags.map(t=>posTag(t)).join(''):'')
+        +'</div>'
+        +'<div style="font-weight:600;font-size:14px">'+esc(r.title)+'</div>'
+        +(r.sub?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r.sub)+'</div>':'')
+        +(r.note?'<div class="visit-note">'+esc(r.note.substring(0,200))+(r.note.length>200?'\u2026':'')+'</div>':'')
+        +(r.photos.length?'<div class="visit-photos">'+r.photos.map(p=>'<img class="visit-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')
         +'</div>';
-    }).join('')}
-  </div>`:''}
+    });
+    // Pagination
+    if(rtp>1){
+      html+='<div class="pagination">';
+      if(rpg>1)html+='<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg-1)+';render()">\u2190 Prev</button>';
+      html+=' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+rpg+' of '+rtp+' \u00b7 '+rtot+' records</span>';
+      if(rpg<rtp)html+='<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg+1)+';render()">Next \u2192</button>';
+      html+='</div>';
+    }
+  }
+  html+='</div>';
 
-  <div class="tab-pane" data-tab="visits">
-    ${(()=>{if(!intMatches.length)return'<div class="empty"><div class="empty-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="24" height="24" rx="3"/><path d="M10 16H22M10 11H22M10 21H16"/></svg></div><div class="empty-text">No visits with '+esc(type)+' in this date range.</div></div>';const VPS=10,vpk='vispg_'+type.replace(/\s/g,'');if(!state[vpk])state[vpk]=1;const vpg=state[vpk],vtot=intMatches.length,vtp=Math.ceil(vtot/VPS),vpaged=intMatches.slice((vpg-1)*VPS,vpg*VPS);const vpag=vtp>1?'<div class="pagination">'+( vpg>1?'<button class="page-btn" onclick="state[\''+vpk+'\']='+( vpg-1)+';render()">← Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+(vpg)+' of '+(vtp)+' · '+vtot+' total</span>'+(vpg<vtp?'<button class="page-btn" onclick="state[\''+vpk+'\']='+( vpg+1)+';render()">Next →</button>':'')+'</div>':'';return vpaged.map(r=>{const k=Object.keys(r).find(k=>k.includes('Next steps'));const note=k?r[k]:'';const tags=getPOS(r);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="source-tag source-tag-internal">INT</span>'+tags.map(t=>posTag(t)).join('')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r['Account serviced'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'…':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')+vpag;})()}
-  </div>
-</div>`;
+  // BY RETAILER TAB
+  html+='<div class="tab-pane" data-tab="retailer"><div class="list-card">';
+  retList.forEach(([name,d])=>{
+    const navTarget=d.source==='advantage'?"nav(\'advantage-chain\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})":"nav(\'chain-detail\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})";
+    html+='<div class="list-item card-lift" style="cursor:pointer" onclick="'+navTarget+'">'
+      +'<div class="list-item-main"><div class="list-item-title">'+esc(name)+'</div>'
+      +'<div class="list-item-sub">'+d.count+' record'+(d.count!==1?'s':'')+'</div></div>'
+      +'<div class="list-item-right" style="display:flex;align-items:center;gap:8px">'
+      +'<span class="source-tag source-tag-'+d.source+'">'+(d.source==='internal'?'INT':'ADV')+'</span>'
+      +'<svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg>'
+      +'</div></div>';
+  });
+  if(!retList.length)html+='<div class="empty"><div class="empty-text">No retailer data.</div></div>';
+  html+='</div></div>';
+
+  html+='</div>'; // close pos-tabs
+  return html;
 }
 
 // COVERAGE
@@ -779,7 +847,7 @@ function renderCoverage(){
   </div>
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div><div class="section-sub">All sources combined</div></div>
-    <div class="list-card" style="padding:14px 16px">
+    <div class="list-card" style="padding:14px 16px;max-height:420px;overflow-y:auto">
       ${tr.length?tr.map(([n,c])=>'<div class="bar-list-item" style="cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(n).replace(/\"/g,'&quot;')+'})">'+'<span class="bar-list-name">'+esc(n)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/mr*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No data in range.</div></div>'}
     </div>
   </div>
@@ -799,10 +867,10 @@ function initMap(){
   const proj=d3.geoAlbersUsa().scale(W*1.25).translate([W/2,H/2]);const path=d3.geoPath().projection(proj);
   const mx=Math.max(...Object.values(sc),1);const cs=d3.scaleSequential([0,mx],d3.interpolate('#e2e8f0','#5b8def'));
   const tt=document.getElementById('state-tooltip');
-  const mapUrls=['https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json','https://unpkg.com/us-atlas@3/states-10m.json','https://d3js.org/us-10m.v1.json'];
+  const mapUrls=['https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json','https://unpkg.com/us-atlas@3/states-10m.json','https://cdn.jsdelivr.net/npm/us-atlas/states-10m.json','https://raw.githubusercontent.com/topojson/us-atlas/master/us/10m.json'];
   function tryFetch(urls,i){if(i>=urls.length)return Promise.reject(new Error('All CDN sources failed'));return fetch(urls[i]).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).catch(()=>tryFetch(urls,i+1));}
   tryFetch(mapUrls,0).then(us=>{
-    const states=topojson.feature(us,us.objects.states);const ia=getStateIdMap();
+    const states=topojson.feature(us,us.objects.states||us.objects.units||Object.values(us.objects)[0]);const ia=getStateIdMap();
     svg.append('g').selectAll('path').data(states.features).join('path').attr('d',path).attr('fill',d=>{const a=ia[d.id];const c=sc[a]||0;return c?cs(c):'#e2e8f0';}).attr('stroke','#fff').attr('stroke-width',0.5).style('cursor','pointer')
       .on('mousemove',(e,d)=>{const a=ia[d.id]||'';const c=sc[a]||0;tt.style.display='block';tt.style.left=(e.offsetX+10)+'px';tt.style.top=(e.offsetY-28)+'px';tt.textContent=a+': '+c+' visit'+(c!==1?'s':'');})
       .on('mouseleave',()=>tt.style.display='none')
@@ -901,7 +969,7 @@ function renderInternalDetail(params){
   <div class="detail-title">${esc(loc)}</div>
   <div class="detail-sub">${itot} visit${itot!==1?'s':''} · Internal Team</div>
 </div>
-${ipaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+${ipaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
 ${ipag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':''}`;
 }
@@ -965,7 +1033,7 @@ function renderAdvRecap(params){
 </div>
 ${summary?'<div class="card" style="margin-bottom:20px"><div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px"><span>Target: <strong>'+( summary['Target Goal']||'—')+'</strong></span><span>Visited: <strong>'+(summary['Stores Visited']||'—')+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (non-HT): <strong>'+(summary['Neck Tags Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-wobbler)">Wobblers: <strong>'+(summary['Wobblers Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (HT): <strong>'+(summary['Neck Tags Placed (HT)']||0)+'</strong></span>'+(summary['Drive File Link']?'<a href="'+esc(summary['Drive File Link'])+'" target="_blank" class="link">View full report →</a>':'')+'</div></div>':''}
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores found for this recap.</div></div>':''}`;
 }
@@ -982,7 +1050,7 @@ function renderAdvChain(params){
   <div class="detail-sub">${tot} store${tot!==1?'s':''} visited</div>
 </div>
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores for this chain.</div></div>':''}`;
 }
@@ -994,7 +1062,7 @@ function renderStateDetail(params){
   const pg=state[spk],tot=rows.length,tp=Math.ceil(tot/SPS),paged=rows.slice((pg-1)*SPS,pg*SPS);
   const pag=tp>1?'<div class="pagination">'+(pg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+pg+' of '+tp+' \u00b7 '+tot+' stores</span>'+(pg<tp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
   const chainSummary=chainList.length?'<div class="list-card" style="margin-bottom:20px">'+chainList.map(([c,n])=>'<div class="list-item" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(c).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(c)+'</div></div><div class="list-item-right"><div class="list-count">'+n+'</div></div></div>').join('')+'</div>':'';
-  const storeCards=paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="window.open(\''+esc(p)+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
+  const storeCards=paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="adv-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'</div>';}).join('');
   return'<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(st)+' Stores</div><div class="detail-sub">'+tot+' store'+(tot!==1?'s':'')+' visited (Advantage)</div></div><div class="section-hd"><div class="section-title">Retailers in '+esc(st)+'</div></div>'+chainSummary+'<div class="section-hd"><div class="section-title">All Stores</div></div><div class="grid-2">'+storeCards+'</div>'+pag+(!rows.length?'<div class="empty"><div class="empty-text">No stores in this state.</div></div>':'');
 }
 
@@ -1009,7 +1077,7 @@ function renderChainDetail(params){
   const cpg=state[cpk],ctot=rows.length,ctp=Math.ceil(ctot/CPS),cpaged=rows.slice((cpg-1)*CPS,cpg*CPS);
   const cpag=ctp>1?'<div class="pagination">'+(cpg>1?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+cpg+' of '+ctp+' \u00b7 '+ctot+' total</span>'+(cpg<ctp?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
 
-  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('');
+  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('');
 
   return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' \u00b7 Internal Team</div></div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
 }
@@ -1032,7 +1100,7 @@ function renderRetailerDetail(params){
   <div class="detail-title">${esc(retailer)}</div>
   <div class="detail-sub">${rtot} visit${rtot!==1?'s':''} with ${esc(type)} \u00b7 Internal Team</div>
 </div>
-${rpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>'+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();window.open(\''+p+'\',\'_blank\')">').join('')+'</div>':'')+'</div>';}).join('')}
+${rpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>'+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
 ${rpag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No visits found for this retailer and POS type.</div></div>':''}`;
 }
