@@ -451,6 +451,15 @@ function updateDateLabel(){const el=document.getElementById('date-range-label');
 function fi(){return state.data.internal.filter(r=>inRange(r['Timestamp']));}
 function fs(){return state.data.skyu.filter(r=>inRange(r['Email Date']));}
 function fa(){return state.data.advStores.filter(r=>inRange(r['Visit Date']));}
+// Normalizes a "Recap Date" style field so that two different-but-equivalent
+// spellings of the same date (e.g. "5/11" vs "05/11/2025") are treated as the
+// same recap when joining the two Advantage tabs together.
+function normRecap(s){
+  if(!s)return'';
+  const d=parseDate(s);
+  if(d)return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  return String(s).trim().toLowerCase();
+}
 function fsum(){
   // Filter Advantage summaries by date range using Recap Date field
   if(!state.dateFrom && !state.dateTo) return state.data.advSummary;
@@ -458,7 +467,8 @@ function fsum(){
     // Recap Date is like "5/11" or "6/11" — we try to match against visit dates
     // from the store rows for that recap, using the actual visit dates for precision.
     // If any store visit in that recap falls in range, include the summary.
-    const recapStores = state.data.advStores.filter(r=>r['Recap Date']===s['Recap Date']);
+    const key=normRecap(s['Recap Date']);
+    const recapStores = state.data.advStores.filter(r=>normRecap(r['Recap Date'])===key);
     if(recapStores.length===0) return true; // no store rows, always include summary
     return recapStores.some(r=>inRange(r['Visit Date']));
   });
@@ -536,7 +546,18 @@ const ISSUE_CATS=[
   {key:'reorder',label:'Reorder Requests',patterns:['reorder','order placed','placing an order'],color:'var(--accent)'},
   {key:'other',label:'Other Findings',patterns:['no pricing','missing','price tag','not authorized','shelving'],color:'var(--skyu)'}
 ];
-function catIssue(note){if(!note)return null;const lc=note.toLowerCase();for(const c of ISSUE_CATS){if(c.patterns.some(p=>lc.includes(p)))return c.key;}return null;}
+// Notes that merely *mention* an issue word while actually saying there is NO
+// problem (e.g. "no inventory issues", "nothing missing") should not be
+// flagged. This is a lightweight guard, not full NLP — it catches the common
+// negation phrasing seen in these field notes.
+const ISSUE_NEGATIONS=['no issues','no problems','nothing missing','all good','fully stocked','no concerns','n/a'];
+function catIssue(note){
+  if(!note)return null;
+  const lc=note.toLowerCase();
+  if(ISSUE_NEGATIONS.some(p=>lc.includes(p)))return null;
+  for(const c of ISSUE_CATS){if(c.patterns.some(p=>lc.includes(p)))return c.key;}
+  return null;
+}
 function isFlagged(note){return catIssue(note)!==null;}
 
 function getAllIssues(){
@@ -636,7 +657,6 @@ function render(){
   else if(p==='advantage-recap')div.innerHTML=renderAdvRecap(params);
   else if(p==='advantage-chain')div.innerHTML=renderAdvChain(params);
   else if(p==='state-detail')div.innerHTML=renderStateDetail(params);
-  else if(p==='retailer-detail')div.innerHTML=renderRetailerDetail(params);
   else if(p==='chain-detail')div.innerHTML=renderChainDetail(params);
   else if(p==='config')div.innerHTML=renderConfig();
   else div.innerHTML='<div class="empty"><div class="empty-text">Page not found.</div></div>';
@@ -718,20 +738,36 @@ function renderDash(){
 function renderPOSDetail(params){
   const type=params.type||'Neck Tag';
   const color=POS_COLORS[type]||'var(--accent)';
-  const intRows=fi(),advSum=fsum(),advRows=fa();
+  const intRows=fi(),advSum=fsum();
   const intMatches=intRows.filter(r=>getPOS(r).includes(type));
   const isNT=type==='Neck Tag',isWB=type==='Wobbler';
+
+  // Advantage placement totals for this type come from the campaign-summary
+  // tab, which is the only place that actually records how many of this POS
+  // type were placed. The per-store Advantage tab does NOT indicate which
+  // specific POS type went into which specific store, so we must not treat
+  // "every store visited during a campaign that placed some neck tags" as a
+  // Neck Tag "record" — that would inflate/misrepresent the count. Instead,
+  // Advantage is represented here at the recap (campaign) level.
   let advTotal=0;
-  if(isNT)advSum.forEach(s=>{advTotal+=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);});
-  if(isWB)advSum.forEach(s=>{advTotal+=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);});
-  const total=intMatches.length+(isNT||isWB?advTotal:0);
-  const hasAdv=(isNT||isWB)&&advSum.length>0;
+  const advRecapCards=[];
+  if(isNT||isWB){
+    advSum.forEach(s=>{
+      const nonHT=isNT?(parseInt(s['Neck Tags Placed (Non-HT)'])||0):(parseInt(s['Wobblers Placed (Non-HT)'])||0);
+      const ht=isNT?(parseInt(s['Neck Tags Placed (HT)'])||0):0; // Wobblers have no HT column
+      const placed=nonHT+ht;
+      advTotal+=placed;
+      if(placed>0){
+        advRecapCards.push({recap:s['Recap Date']||'—',placed,visited:parseInt(s['Stores Visited'])||0,target:parseInt(s['Target Goal'])||0,driveLink:s['Drive File Link']||''});
+      }
+    });
+  }
+  const total=intMatches.length+advTotal; // "Total Placed" — a placement count, not a record count
+  const hasAdv=advRecapCards.length>0;
 
-  // Advantage store records from recaps that include this POS type
-  const advRecapDates=hasAdv?advSum.map(s=>s['Recap Date']):[];
-  const advStoreRecords=hasAdv?advRows.filter(r=>advRecapDates.includes(r['Recap Date'])):[];
-
-  // Combined records for All Records tab
+  // Combined records for the "All Records" tab. Internal rows are genuine
+  // per-store placement records. Advantage is shown as per-campaign summary
+  // cards (accurate to the data we actually have), not per-store rows.
   const combined=[];
   intMatches.forEach(r=>{
     const k=Object.keys(r).find(k=>k.includes('Next steps'));
@@ -739,11 +775,9 @@ function renderPOSDetail(params){
     const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];
     combined.push({source:'internal',title:cleanLoc(r),sub:getRetailer(r),date:r['Timestamp'],note,photos,tags:getPOS(r),flagged:isFlagged(note),isNew:(r['New or Existing']||'').toLowerCase()==='new',raw:r});
   });
-  advStoreRecords.forEach(r=>{
-    const photos=advPhotos(r['Photos']||'');
-    combined.push({source:'advantage',title:(r['Chain']||'')+' #'+(r['Store #']||''),sub:(r['City']||'')+(r['State']?', '+r['State']:''),date:r['Visit Date'],note:'Recap '+r['Recap Date'],photos,tags:[],flagged:false,isNew:false,raw:r});
+  advRecapCards.forEach(c=>{
+    combined.push({source:'advantage',title:'Campaign recap '+c.recap,sub:c.visited+' / '+c.target+' stores visited',date:'',note:c.placed+' '+type+(c.placed!==1?'s':'')+' placed this campaign',photos:[],tags:[],flagged:false,isNew:false,isRecap:true,recap:c.recap,driveLink:c.driveLink});
   });
-  combined.sort((a,b)=>(parseDate(b.date)||0)-(parseDate(a.date)||0));
 
   // Source filter state
   const sfk='pos_srcf_'+type.replace(/\s/g,'');
@@ -751,10 +785,11 @@ function renderPOSDetail(params){
   const srcFilter=state[sfk];
   const filtered=srcFilter==='all'?combined:combined.filter(r=>r.source===srcFilter);
 
-  // By Retailer — combined from all sources
+  // By Retailer — internal only. Advantage placement totals are reported at
+  // the campaign level in this data set, not broken out per retailer chain,
+  // so we don't fabricate a chain-level breakdown for them here.
   const retMap={};
-  intMatches.forEach(r=>{const n=getRetailer(r);if(!retMap[n])retMap[n]={count:0,posCount:0,source:'internal'};retMap[n].count++;retMap[n].posCount++;});
-  if(hasAdv){advStoreRecords.forEach(r=>{const n=r['Chain']||'Unknown';if(!retMap[n])retMap[n]={count:0,posCount:0,source:'advantage'};retMap[n].count++;});}
+  intMatches.forEach(r=>{const n=getRetailer(r);if(!retMap[n])retMap[n]={count:0};retMap[n].count++;});
   const retList=Object.entries(retMap).sort((a,b)=>b[1].count-a[1].count);
 
   // Pagination for All Records
@@ -768,15 +803,16 @@ function renderPOSDetail(params){
   // Build header
   var html='<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>'
     +'<div class="pos-drill-hd"><div class="pos-drill-icon" style="background:'+color+'1a;color:'+color+'">'+(icons[type]||'')+'</div>'
-    +'<div><div class="pos-drill-title">'+esc(type)+'</div><div class="text-muted text-sm" style="margin-top:2px">Placed across all sources</div></div>'
+    +'<div><div class="pos-drill-title">'+esc(type)+'</div><div class="text-muted text-sm" style="margin-top:2px">Total placed across all sources</div></div>'
     +'<div class="pos-drill-total" style="color:'+color+'">'+total+'</div></div></div>';
 
   // Source filter chips
   html+='<div class="filter-bar" style="margin-bottom:16px">';
   html+='<div class="filter-chip '+(srcFilter==='all'?'active':'')+'" onclick="state[\''+sfk+'\']=\'all\';state[\''+rpk+'\']=1;render()">All ('+combined.length+')</div>';
-  html+='<div class="filter-chip '+(srcFilter==='internal'?'active':'')+'" onclick="state[\''+sfk+'\']=\'internal\';state[\''+rpk+'\']=1;render()">Internal Team ('+combined.filter(r=>r.source==='internal').length+')</div>';
-  if(hasAdv)html+='<div class="filter-chip '+(srcFilter==='advantage'?'active':'')+'" onclick="state[\''+sfk+'\']=\'advantage\';state[\''+rpk+'\']=1;render()">Advantage ('+advStoreRecords.length+')</div>';
+  html+='<div class="filter-chip '+(srcFilter==='internal'?'active':'')+'" onclick="state[\''+sfk+'\']=\'internal\';state[\''+rpk+'\']=1;render()">Internal Team ('+intMatches.length+')</div>';
+  if(hasAdv)html+='<div class="filter-chip '+(srcFilter==='advantage'?'active':'')+'" onclick="state[\''+sfk+'\']=\'advantage\';state[\''+rpk+'\']=1;render()">Advantage campaigns ('+advRecapCards.length+')</div>';
   html+='</div>';
+  if(hasAdv)html+='<div class="text-sm text-muted" style="margin:-8px 0 16px">Advantage figures are reported per campaign, not per store — the campaign cards below show total placed for that recap, not individual store placements.</div>';
 
   // Tabs
   html+='<div id="pos-tabs"><div class="tab-bar">'
@@ -790,8 +826,17 @@ function renderPOSDetail(params){
     html+='<div class="empty"><div class="empty-text">No records for '+esc(type)+' in this range.</div></div>';
   }else{
     rpaged.forEach(r=>{
-      const srcTag=r.source==='internal'?'<span class="source-tag source-tag-internal">INT</span>':'<span class="source-tag source-tag-advantage">ADV</span>';
-      html+='<div class="visit-card '+(r.flagged?'flagged':'')+'" style="cursor:pointer" onclick="'+(r.source==='internal'?'nav(\'internal-detail\',{loc:'+JSON.stringify(r.title).replace(/"/g,'&quot;')+'})':'nav(\'advantage-chain\',{loc:'+JSON.stringify(r.raw['Chain']||'').replace(/"/g,'&quot;')+'})' )+'">'
+      if(r.isRecap){
+        html+='<div class="visit-card" style="cursor:pointer" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(r.recap).replace(/"/g,'&quot;')+'})">'
+          +'<div class="visit-hd"><span class="source-tag source-tag-advantage">ADV</span><span style="font-weight:600;font-size:14px">'+esc(r.title)+'</span></div>'
+          +'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r.sub)+'</div>'
+          +'<div class="visit-note">'+esc(r.note)+'</div>'
+          +(r.driveLink?'<div style="margin-top:8px"><a href="'+esc(r.driveLink)+'" target="_blank" onclick="event.stopPropagation()" class="link">View full report →</a></div>':'')
+          +'</div>';
+        return;
+      }
+      const srcTag='<span class="source-tag source-tag-internal">INT</span>';
+      html+='<div class="visit-card '+(r.flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(r.title).replace(/"/g,'&quot;')+'})">'
         +'<div class="visit-hd"><span class="visit-date">'+fmtShort(r.date)+'</span>'+srcTag
         +(r.isNew?'<span class="badge badge-new">New</span>':'')
         +(r.flagged?'<span class="badge badge-flagged">Flagged</span>':'')
@@ -815,14 +860,15 @@ function renderPOSDetail(params){
   html+='</div>';
 
   // BY RETAILER TAB
-  html+='<div class="tab-pane" data-tab="retailer"><div class="list-card">';
+  html+='<div class="tab-pane" data-tab="retailer">';
+  if(hasAdv)html+='<div class="text-sm text-muted" style="margin-bottom:12px">Showing Internal Team retailers only — Advantage does not report placements by retailer chain.</div>';
+  html+='<div class="list-card">';
   retList.forEach(([name,d])=>{
-    const navTarget=d.source==='advantage'?"nav(\'advantage-chain\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})":"nav(\'chain-detail\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})";
-    html+='<div class="list-item card-lift" style="cursor:pointer" onclick="'+navTarget+'">'
+    html+='<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(name).replace(/"/g,'&quot;')+'})">'
       +'<div class="list-item-main"><div class="list-item-title">'+esc(name)+'</div>'
       +'<div class="list-item-sub">'+d.count+' record'+(d.count!==1?'s':'')+'</div></div>'
       +'<div class="list-item-right" style="display:flex;align-items:center;gap:8px">'
-      +'<span class="source-tag source-tag-'+d.source+'">'+(d.source==='internal'?'INT':'ADV')+'</span>'
+      +'<span class="source-tag source-tag-internal">INT</span>'
       +'<svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg>'
       +'</div></div>';
   });
@@ -857,7 +903,7 @@ function renderCoverage(){
 <div class="section-gap">
   <div class="section-hd"><div class="section-title">State Breakdown</div><div class="section-sub">Advantage store visits</div></div>
   <div class="list-card" style="padding:14px 16px">
-    ${ts.length?ts.map(([st,c])=>'<div class="bar-list-item" onclick="nav(\'state-detail\',{state:\''+esc(st)+'\'})"><span class="bar-list-name">'+esc(st)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/ms*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No state data.</div></div>'}
+    ${ts.length?ts.map(([st,c])=>'<div class="bar-list-item" onclick="nav(\'state-detail\',{state:'+JSON.stringify(st).replace(/"/g,'&quot;')+'})"><span class="bar-list-name">'+esc(st)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/ms*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No state data.</div></div>'}
   </div>
 </div>`;
 }
@@ -979,25 +1025,45 @@ ${!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div
 // SKYU
 function renderSkyu(){
   const rows=fs();const cm={};
-  rows.forEach(r=>{const c=skyuCity(r);if(!cm[c])cm[c]={count:0,last:''};cm[c].count++;const d=r['Email Date'];if(!cm[c].last||d>cm[c].last)cm[c].last=d;});
+  rows.forEach(r=>{const c=skyuCity(r);if(!cm[c])cm[c]={count:0,last:'',photos:0,firstPhoto:''};cm[c].count++;const d=r['Email Date'];if(!cm[c].last||d>cm[c].last)cm[c].last=d;const p=advPhotos(r['Photos']||'');cm[c].photos+=p.length;if(p.length&&!cm[c].firstPhoto)cm[c].firstPhoto=p[0];});
   const sorted=Object.entries(cm).sort((a,b)=>b[1].count-a[1].count);
-  return`
-<div class="section-hd"><div class="section-title" style="font-size:20px">SkyU · Circle K</div><div class="section-sub">${rows.length} tasks · ${sorted.length} locations</div></div>
-<div class="list-card">
-  ${sorted.length?sorted.map(([city,info])=>'<div class="list-item" onclick="nav(\'skyu-detail\',{city:'+JSON.stringify(city).replace(/"/g,'&quot;')+'})"><div class="list-icon" style="background:var(--skyu-bg);color:var(--skyu)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M4 4V3C4 2 5 1 6 1H10C11 1 12 2 12 3V4"/><path d="M5 9H11M5 11H9"/></svg></div><div class="list-item-main"><div class="list-item-title">'+esc(city)+'</div><div class="list-item-sub">Circle K · '+info.count+' task'+(info.count!==1?'s':'')+'</div></div><div class="list-item-right"><div class="list-count">'+info.count+'</div><div class="list-date">'+fmtShort(info.last)+'</div></div></div>').join(''):'<div class="empty"><div class="empty-text">No SkyU tasks in range.</div></div>'}
-</div>`;
+  const totalPhotos=sorted.reduce((s,e)=>s+e[1].photos,0);
+  var html='<div class="section-hd"><div class="section-title" style="font-size:20px">SkyU \u00b7 Circle K</div><div class="section-sub">'+rows.length+' tasks \u00b7 '+sorted.length+' locations \u00b7 '+totalPhotos+' photos</div></div>';
+  if(!sorted.length){
+    html+='<div class="empty"><div class="empty-text">No SkyU tasks in range.</div></div>';
+    return html;
+  }
+  html+='<div class="list-card">';
+  sorted.forEach(function(entry){
+    var city=entry[0],info=entry[1];
+    html+='<div class="list-item" style="cursor:pointer;min-height:60px" onclick="nav(\'skyu-detail\',{city:'+JSON.stringify(city).replace(/"/g,'&quot;')+'})">';
+    if(info.firstPhoto){
+      html+='<img class="visit-photo" src="'+esc(info.firstPhoto)+'" style="width:64px;height:48px;border-radius:6px;margin-right:12px" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();openLightbox(\''+esc(info.firstPhoto)+'\')">';
+    }else{
+      html+='<div class="list-icon" style="background:var(--skyu-bg);color:var(--skyu)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M4 4V3C4 2 5 1 6 1H10C11 1 12 2 12 3V4"/><path d="M5 9H11M5 11H9"/></svg></div>';
+    }
+    html+='<div class="list-item-main"><div class="list-item-title">'+esc(city)+'</div><div class="list-item-sub">Circle K \u00b7 '+info.count+' task'+(info.count!==1?'s':'')+(info.photos?' \u00b7 '+info.photos+' photo'+(info.photos!==1?'s':''):'')+'</div></div>';
+    html+='<div class="list-item-right"><div class="list-count">'+info.count+'</div><div class="list-date">'+fmtShort(info.last)+'</div></div></div>';
+  });
+  html+='</div>';
+  return html;
 }
 
 function renderSkyuDetail(params){
   const city=params&&params.city?params.city:'';
   const rows=fs().filter(r=>skyuCity(r)===city);rows.sort((a,b)=>(parseDate(b['Email Date'])||0)-(parseDate(a['Email Date'])||0));
+  const SPS=12,spk='skupg_'+city.replace(/[^a-z0-9]/gi,'');
+  if(!state[spk])state[spk]=1;
+  const pg=state[spk],tot=rows.length,tp=Math.ceil(tot/SPS),paged=rows.slice((pg-1)*SPS,pg*SPS);
+  const pag=tp>1?'<div class="pagination">'+(pg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+pg+' of '+tp+' \u00b7 '+tot+' tasks</span>'+(pg<tp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
   return`
 <div class="detail-hd">
   <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
   <div class="detail-title">${esc(city)}</div>
-  <div class="detail-sub">${rows.length} Circle K task${rows.length!==1?'s':''}</div>
+  <div class="detail-sub">${tot} Circle K task${tot!==1?'s':''}</div>
 </div>
-${rows.map(r=>{const note=r['Comments / Findings']||'';const flagged=isFlagged(note);return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Email Date'])+'</span><span class="badge '+(flagged?'badge-flagged':'badge-done')+'">'+(flagged?'Flagged':'Complete')+'</span></div>'+(r['Address']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Address'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['Task ID']?'<div class="text-mono text-sm text-muted">Task '+esc(r['Task ID'])+'</div>':'')+(r['Portal Link']?'<div><a href="'+esc(r['Portal Link'])+'" target="_blank" class="link">View in Portal →</a></div>':'')+'</div></div>';}).join('')}
+${paged.map(r=>{const note=r['Comments / Findings']||'';const flagged=isFlagged(note);const photos=advPhotos(r['Photos']||'');return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Email Date'])+'</span><span class="badge '+(flagged?'badge-flagged':'badge-done')+'">'+(flagged?'Flagged':'Complete')+'</span></div>'+(r['Address']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Address'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'<div class="visit-meta">'+(r['Task ID']?'<div class="text-mono text-sm text-muted">Task '+esc(r['Task ID'])+'</div>':'')+(r['Portal Link']?'<div><a href="'+esc(r['Portal Link'])+'" target="_blank" class="link">View in Portal \u2192</a></div>':'')+'</div></div>';}).join('')}
+${pag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No tasks for this location.</div></div>':''}`;
 }
 
@@ -1010,7 +1076,7 @@ function renderAdvantage(){
 <div class="grid-2" style="gap:24px">
   <div>
     <div class="section-hd"><div class="section-title">Campaign Recaps</div></div>
-    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>r['Recap Date']===s['Recap Date']).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer" onclick="event.stopPropagation();nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'});">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
+    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>normRecap(r['Recap Date'])===normRecap(s['Recap Date'])).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer" onclick="event.stopPropagation();nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'});">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
   </div>
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div></div>
@@ -1023,8 +1089,9 @@ function renderAdvantage(){
 
 function renderAdvRecap(params){
   const recap=params&&params.recap?params.recap:'';
-  const rows=fa().filter(r=>r['Recap Date']===recap);
-  const summary=state.data.advSummary.find(s=>s['Recap Date']===recap);
+  const key=normRecap(recap);
+  const rows=fa().filter(r=>normRecap(r['Recap Date'])===key);
+  const summary=state.data.advSummary.find(s=>normRecap(s['Recap Date'])===key);
   const PS=8,pk='advrp'+recap;if(!state[pk])state[pk]=1;const pg=state[pk],tot=rows.length,tp=Math.ceil(tot/PS),paged=rows.slice((pg-1)*PS,pg*PS);
   const pag=tp>1?'<div class="pagination"><button class="page-btn" '+(pg===1?'disabled':'')+' onclick="state[\''+pk+'\']='+( pg-1)+';render()">Prev</button>'+Array.from({length:tp},(_,i)=>'<button class="page-btn '+(i+1===pg?'active':'')+'" onclick="state[\''+pk+'\']='+( i+1)+';render()">'+(i+1)+'</button>').join('')+'<button class="page-btn" '+(pg===tp?'disabled':'')+' onclick="state[\''+pk+'\']='+( pg+1)+';render()">Next</button></div>':'';
   return`
@@ -1083,30 +1150,6 @@ function renderChainDetail(params){
 
   return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' \u00b7 Internal Team</div></div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
 }
-
-// RETAILER DETAIL — all visits for a retailer with a specific POS type
-function renderRetailerDetail(params){
-  const retailer=params&&params.retailer?params.retailer:'';
-  const type=params&&params.type?params.type:'';
-  const color=POS_COLORS[type]||'var(--accent)';
-  const rows=fi().filter(r=>getRetailer(r)===retailer&&getPOS(r).includes(type));
-  rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
-  const RPS=10,rpk='rdpg_'+retailer.replace(/[^a-z0-9]/gi,'');
-  if(!state[rpk])state[rpk]=1;
-  const rpg=state[rpk],rtot=rows.length,rtp=Math.ceil(rtot/RPS),rpaged=rows.slice((rpg-1)*RPS,rpg*RPS);
-  const rpag=rtp>1?'<div class="pagination">'+(rpg>1?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+rpg+' of '+rtp+' \u00b7 '+rtot+' total</span>'+(rpg<rtp?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
-  const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
-  return`
-<div class="detail-hd">
-  <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
-  <div class="detail-title">${esc(retailer)}</div>
-  <div class="detail-sub">${rtot} visit${rtot!==1?'s':''} with ${esc(type)} \u00b7 Internal Team</div>
-</div>
-${rpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>'+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
-${rpag}
-${!rows.length?'<div class="empty"><div class="empty-text">No visits found for this retailer and POS type.</div></div>':''}`;
-}
-
 
 function renderConfig(){
   return`
