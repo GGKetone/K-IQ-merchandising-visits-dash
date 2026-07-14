@@ -12,19 +12,29 @@
 <style>
 :root {
   --navy:#1e293b;--navy-light:#263548;--navy-border:#334155;
-  --accent:#5b8def;--accent-dim:rgba(91,141,239,0.12);
-  --bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5fb;
-  --text:#1e293b;--text-2:#4b5e78;--text-3:#8096b0;
-  --internal:#5b7fa6;--internal-bg:rgba(91,127,166,0.1);
-  --skyu:#5ba6a0;--skyu-bg:rgba(91,166,160,0.1);
-  --advantage:#a09050;--advantage-bg:rgba(160,144,80,0.1);
-  --success:#5a9070;--success-bg:rgba(90,144,112,0.1);
-  --warn:#c07878;--warn-bg:rgba(192,120,120,0.1);
-  --border:#e2e8f0;
-  --shadow-sm:0 1px 3px rgba(0,0,0,0.05),0 1px 2px rgba(0,0,0,0.03);
-  --shadow-md:0 4px 12px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg:0 8px 24px rgba(0,0,0,0.09),0 4px 8px rgba(0,0,0,0.05);
-  --radius:12px;--radius-sm:8px;
+  --accent:#6d8df0;--accent-dim:rgba(109,141,240,0.14);
+  --bg:#eef2fb;--surface:#ffffff;--surface2:#f1f5fb;
+  --text:#28324a;--text-2:#5b6a85;--text-3:#93a1ba;
+  --internal:#5b7fa6;--internal-bg:rgba(91,127,166,0.12);
+  --skyu:#4a9d94;--skyu-bg:rgba(74,157,148,0.12);
+  --advantage:#a4903f;--advantage-bg:rgba(164,144,63,0.12);
+  --success:#4f9a70;--success-bg:rgba(79,154,112,0.12);
+  --warn:#d17575;--warn-bg:rgba(209,117,117,0.12);
+  --border:rgba(255,255,255,0.5);
+
+  /* glass tokens — Tahoe/Liquid Glass recipe: more see-through, saturated blur, specular edge */
+  --glass:linear-gradient(135deg, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0.16) 100%);
+  --glass-strong:linear-gradient(135deg, rgba(255,255,255,0.66) 0%, rgba(255,255,255,0.32) 100%);
+  --glass-soft:linear-gradient(135deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.08) 100%);
+  --glass-border:rgba(255,255,255,0.85);
+  --glass-border-soft:rgba(255,255,255,0.5);
+  --blur:blur(26px) saturate(200%);
+  --blur-lg:blur(46px) saturate(200%);
+
+  --shadow-sm:inset 0 1px 1px rgba(255,255,255,0.95),inset 0 0 0 1px rgba(255,255,255,0.12),0 6px 20px rgba(64,79,120,0.10);
+  --shadow-md:inset 0 1px 1px rgba(255,255,255,0.95),inset 0 0 0 1px rgba(255,255,255,0.16),0 14px 38px rgba(64,79,120,0.16);
+  --shadow-lg:inset 0 1px 1px rgba(255,255,255,0.95),inset 0 0 0 1px rgba(255,255,255,0.2),0 22px 56px rgba(64,79,120,0.20);
+  --radius:18px;--radius-sm:13px;
   --sidebar-w:232px;
   --mono:'JetBrains Mono',monospace;
   --sans:'Hanken Grotesk',sans-serif;
@@ -34,64 +44,75 @@
   --ease:cubic-bezier(0.16,1,0.3,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+html,body{height:100%;font-family:var(--sans);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+body{
+  background:
+    radial-gradient(circle at 8% 8%, rgba(150,182,255,1) 0%, rgba(150,182,255,0) 45%),
+    radial-gradient(circle at 95% 10%, rgba(255,175,195,0.75) 0%, rgba(255,175,195,0) 42%),
+    radial-gradient(circle at 20% 92%, rgba(140,230,205,0.8) 0%, rgba(140,230,205,0) 48%),
+    radial-gradient(circle at 88% 88%, rgba(190,170,255,0.75) 0%, rgba(190,170,255,0) 48%),
+    radial-gradient(circle at 50% 50%, rgba(255,240,200,0.35) 0%, rgba(255,240,200,0) 60%),
+    linear-gradient(180deg, #e4ecff 0%, #eef2fb 55%, #e9f5f0 100%);
+  background-attachment:fixed;
+}
 #app{display:flex;height:100vh;overflow:hidden;}
 
 /* SIDEBAR */
-#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;transition:transform 0.3s var(--ease);z-index:100;}
-.sb-brand{padding:22px 18px 18px;border-bottom:1px solid var(--navy-border);}
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--glass-strong);backdrop-filter:var(--blur-lg);-webkit-backdrop-filter:var(--blur-lg);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;transition:transform 0.3s var(--ease);z-index:100;}
+.sb-brand{padding:22px 18px 18px;border-bottom:1px solid var(--glass-border-soft);}
 .sb-logo{display:flex;align-items:center;gap:10px;}
-.sb-logo-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sb-brand-name{font-size:14px;font-weight:700;letter-spacing:0.02em;color:#fff;}
-.sb-brand-sub{font-size:11px;color:rgba(255,255,255,0.4);font-family:var(--mono);margin-top:1px;}
+.sb-logo-mark{width:28px;height:28px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(109,141,240,0.4);}
+.sb-brand-name{font-size:14px;font-weight:700;letter-spacing:0.02em;color:var(--text);}
+.sb-brand-sub{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:1px;}
 .sb-section{padding:14px 10px 4px;}
-.sb-section-label{font-size:10px;font-weight:600;letter-spacing:0.12em;color:rgba(255,255,255,0.3);text-transform:uppercase;padding:0 10px;margin-bottom:6px;}
-.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,0.6);transition:background 0.15s,color 0.15s;user-select:none;}
-.sb-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
-.sb-item.active{background:rgba(91,141,239,0.18);color:#fff;}
+.sb-section-label{font-size:10px;font-weight:600;letter-spacing:0.12em;color:var(--text-3);text-transform:uppercase;padding:0 10px;margin-bottom:6px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-2);transition:background 0.15s,color 0.15s;user-select:none;}
+.sb-item:hover{background:rgba(255,255,255,0.55);color:var(--text);}
+.sb-item.active{background:rgba(255,255,255,0.85);color:var(--accent);box-shadow:var(--shadow-sm);}
 .sb-item.active .sb-icon svg{opacity:1;color:var(--accent);}
 .sb-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sb-icon svg{width:15px;height:15px;opacity:0.55;transition:opacity 0.15s;}
-.sb-item:hover .sb-icon svg,.sb-item.active .sb-icon svg{opacity:0.9;}
+.sb-icon svg{width:15px;height:15px;opacity:0.6;transition:opacity 0.15s;}
+.sb-item:hover .sb-icon svg,.sb-item.active .sb-icon svg{opacity:1;}
 
 /* MAIN */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{height:54px;min-height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 20px;}
+#topbar{height:58px;min-height:58px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-bottom:1px solid var(--glass-border-soft);display:flex;align-items:center;gap:14px;padding:0 20px;}
 #content{flex:1;overflow-y:auto;padding:24px;}
 #content>.page{animation:pageIn 0.2s var(--ease);}
 @keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
 /* HAMBURGER */
 #hamburger{display:none;background:none;border:none;cursor:pointer;color:var(--text-2);padding:4px;border-radius:6px;transition:background 0.15s;}
-#hamburger:hover{background:var(--surface2);}
+#hamburger:hover{background:rgba(255,255,255,0.5);}
 
 /* SEARCH */
 #search-wrap{flex:1;max-width:400px;position:relative;}
-#search-input{width:100%;padding:7px 12px 7px 36px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:13px;background:var(--surface2);color:var(--text);outline:none;transition:border-color 0.2s,background 0.2s;}
-#search-input:focus{border-color:var(--accent);background:var(--surface);}
+#search-input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--glass-border);border-radius:11px;font-family:var(--sans);font-size:13px;background:rgba(255,255,255,0.45);color:var(--text);outline:none;transition:border-color 0.2s,background 0.2s;}
+#search-input:focus{border-color:var(--accent);background:rgba(255,255,255,0.85);}
+#search-input::placeholder{color:var(--text-3);}
 #search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-3);pointer-events:none;}
 #search-icon svg{width:14px;height:14px;}
-#search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);max-height:320px;overflow-y:auto;z-index:200;display:none;}
+#search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--glass-strong);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);max-height:320px;overflow-y:auto;z-index:200;display:none;}
 #search-results.open{display:block;}
-.sr-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;transition:background 0.12s;}
+.sr-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--glass-border-soft);display:flex;align-items:flex-start;gap:10px;transition:background 0.12s;}
 .sr-item:last-child{border-bottom:none;}
-.sr-item:hover{background:var(--surface2);}
+.sr-item:hover{background:rgba(255,255,255,0.5);}
 .sr-item-body{flex:1;min-width:0;}
 .sr-item-title{font-weight:600;font-size:13px;}
 .sr-item-sub{font-size:12px;color:var(--text-3);}
 
 /* DATE BAR */
-#datebar{display:flex;align-items:center;gap:10px;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px;font-size:13px;}
+#datebar{display:flex;align-items:center;gap:10px;background:var(--glass-soft);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-bottom:1px solid var(--glass-border-soft);padding:9px 20px;font-size:13px;}
 #datebar label{color:var(--text-2);font-weight:500;font-size:12px;}
-#datebar input[type="date"]{padding:5px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--sans);font-size:12px;color:var(--text);background:var(--surface2);outline:none;transition:border-color 0.2s;}
+#datebar input[type="date"]{padding:5px 10px;border:1px solid var(--glass-border);border-radius:8px;font-family:var(--sans);font-size:12px;color:var(--text);background:rgba(255,255,255,0.5);outline:none;transition:border-color 0.2s;}
 #datebar input:focus{border-color:var(--accent);}
-#btn-alltime{padding:5px 14px;border:1.5px solid var(--border);border-radius:7px;background:none;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all 0.15s;}
-#btn-alltime:hover{border-color:var(--accent);color:var(--accent);}
+#btn-alltime{padding:5px 14px;border:1px solid var(--glass-border);border-radius:8px;background:rgba(255,255,255,0.4);font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all 0.15s;}
+#btn-alltime:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,0.7);}
 .date-range-label{color:var(--text-3);font-size:11px;font-family:var(--mono);}
 
 /* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease);}
-.card-lift:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
+.card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease),background 0.2s;}
+.card-lift:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);background:var(--glass-strong);}
 .card-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);margin-bottom:6px;}
 .card-value{font-size:28px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1;}
 .card-sub{font-size:11px;color:var(--text-3);margin-top:4px;}
@@ -103,8 +124,8 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .hero-stat .card-value{font-size:34px;}
 
 /* POS CARDS */
-.pos-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);border-top:3px solid var(--pos-c);cursor:pointer;transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease);}
-.pos-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+.pos-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm);border-top:3px solid var(--pos-c);cursor:pointer;transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease),background 0.2s;}
+.pos-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);background:var(--glass-strong);}
 .pos-card .card-value{font-size:24px;color:var(--pos-c);}
 .pos-card .card-label{color:var(--pos-c);opacity:0.9;}
 .pos-necktag{--pos-c:var(--pos-necktag);}
@@ -150,15 +171,15 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
 /* ACTION CARDS */
-.action-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease);box-shadow:var(--shadow-sm);}
-.action-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
-.action-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.action-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease),background 0.2s;box-shadow:var(--shadow-sm);}
+.action-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);background:var(--glass-strong);}
+.action-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
 .action-icon svg{width:18px;height:18px;}
 .action-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-3);margin-bottom:4px;}
 .action-count{font-size:28px;font-weight:700;font-family:var(--mono);}
 .ac-oos .action-icon{background:var(--warn-bg);color:var(--warn);}
 .ac-oos .action-count{color:var(--warn);}
-.ac-low .action-icon{background:rgba(192,144,64,0.1);color:#c09040;}
+.ac-low .action-icon{background:rgba(192,144,64,0.12);color:#c09040;}
 .ac-low .action-count{color:#c09040;}
 .ac-reorder .action-icon{background:var(--accent-dim);color:var(--accent);}
 .ac-reorder .action-count{color:var(--accent);}
@@ -178,10 +199,10 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .stream-meta{font-size:11px;color:var(--text-3);font-family:var(--mono);margin-top:2px;}
 
 /* LISTS */
-.list-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
-.list-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s;}
+.list-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--glass-border-soft);cursor:pointer;transition:background 0.12s;}
 .list-item:last-child{border-bottom:none;}
-.list-item:hover{background:var(--surface2);}
+.list-item:hover{background:rgba(255,255,255,0.45);}
 .list-item-main{flex:1;min-width:0;}
 .list-item-title{font-weight:600;font-size:13px;}
 .list-item-sub{font-size:12px;color:var(--text-3);margin-top:1px;}
@@ -193,26 +214,41 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 
 /* DETAIL */
 .detail-hd{margin-bottom:24px;}
-.back-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:99px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);box-shadow:0 2px 8px rgba(91,141,239,0.25);transition:background 0.15s,box-shadow 0.15s,transform 0.15s;margin-bottom:16px;}
-.back-btn:hover{background:#4a7de0;box-shadow:0 4px 14px rgba(91,141,239,0.35);transform:translateY(-1px);}
+.back-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:99px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);box-shadow:0 4px 14px rgba(109,141,240,0.32);transition:background 0.15s,box-shadow 0.15s,transform 0.15s;margin-bottom:16px;}
+.back-btn:hover{background:#5a7ee0;box-shadow:0 6px 18px rgba(109,141,240,0.42);transform:translateY(-1px);}
 .back-btn svg{width:14px;height:14px;}
 .detail-title{font-size:22px;font-weight:700;}
 .detail-sub{font-size:13px;color:var(--text-3);margin-top:4px;}
 
 /* VISIT CARDS */
-.visit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s;}
-.visit-card:hover{box-shadow:var(--shadow-md);}
+.visit-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s,background 0.2s;}
+.visit-card:hover{box-shadow:var(--shadow-md);background:var(--glass-strong);}
 .visit-card.flagged{border-left:3px solid var(--warn);}
-.visit-hd{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-.visit-date{font-family:var(--mono);font-size:12px;color:var(--text-3);margin-top:3px;}
+.visit-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;}
+.visit-card .visit-hd{margin-bottom:0;}
+.visit-card.expanded .visit-hd{margin-bottom:10px;}
+.visit-date{font-family:var(--mono);font-size:12px;color:var(--text-3);}
 .visit-note{font-size:13px;color:var(--text-2);margin-top:8px;line-height:1.6;}
 .visit-meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--text-3);}
-.visit-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
-.visit-photo{width:160px;height:120px;object-fit:contain;background:var(--surface2);border-radius:6px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
-.visit-photo:hover{transform:scale(1.03);}
-.visit-photo-lg{width:100%;max-width:420px;height:auto;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}
-.visit-photo-lg:hover{transform:scale(1.02);}
-.adv-photo{width:220px;height:165px;object-fit:contain;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform 0.15s;}.adv-photo:hover{transform:scale(1.02);}
+.visit-chevron{width:13px;height:13px;color:var(--text-3);transition:transform 0.2s var(--ease);margin-left:auto;flex-shrink:0;}
+.visit-card.expanded .visit-chevron{transform:rotate(180deg);}
+.photo-count-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--mono);background:rgba(109,141,240,0.12);color:var(--accent);flex-shrink:0;}
+.photo-count-badge svg{width:11px;height:11px;}
+.visit-body{display:none;}
+.visit-card.expanded .visit-body{display:block;animation:fadeIn 0.15s ease;}
+.visit-open-link{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;margin-top:10px;display:inline-block;}
+.visit-open-link:hover{text-decoration:underline;}
+
+/* PHOTO GRID — compact square thumbnails, click to enlarge in lightbox */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:12px;max-width:456px;}
+.photo-thumb{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--surface2);border-radius:8px;border:1px solid var(--glass-border);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;display:block;}
+.photo-thumb:hover{transform:scale(1.06);box-shadow:var(--shadow-sm);}
+.photo-more{width:100%;aspect-ratio:1/1;border-radius:8px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;transition:background 0.15s;}
+.photo-more:hover{background:rgba(255,255,255,0.85);}
+/* legacy aliases kept so nothing silently breaks */
+.visit-photos,.store-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:12px;max-width:456px;}
+.visit-photo,.visit-photo-lg,.adv-photo{width:100%;aspect-ratio:1/1;height:auto;object-fit:cover;background:var(--surface2);border-radius:8px;border:1px solid var(--glass-border);cursor:pointer;transition:transform 0.15s;max-width:none;}
+.visit-photo:hover,.visit-photo-lg:hover,.adv-photo:hover{transform:scale(1.06);}
 
 /* PROGRESS */
 .prog-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
@@ -233,8 +269,8 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .state-tooltip{position:absolute;background:var(--navy);color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;pointer-events:none;display:none;z-index:10;box-shadow:var(--shadow-md);}
 
 /* CAMPAIGN CARDS */
-.campaign-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease);cursor:pointer;margin-bottom:12px;}
-.campaign-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+.campaign-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);transition:box-shadow 0.2s var(--ease),transform 0.2s var(--ease),background 0.2s;cursor:pointer;margin-bottom:12px;}
+.campaign-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);background:var(--glass-strong);}
 .cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .cc-date{font-size:16px;font-weight:700;font-family:var(--mono);}
 .cc-pct{font-size:22px;font-weight:700;color:var(--accent);font-family:var(--mono);}
@@ -247,17 +283,17 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 .cc-pos-val{font-family:var(--mono);font-weight:600;color:var(--text);margin-left:auto;}
 
 /* ISSUE CARDS */
-.issue-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:box-shadow 0.15s;box-shadow:var(--shadow-sm);}
-.issue-card:hover{box-shadow:var(--shadow-md);}
+.issue-card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-border);border-left:3px solid var(--warn);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:box-shadow 0.15s,background 0.15s;box-shadow:var(--shadow-sm);}
+.issue-card:hover{box-shadow:var(--shadow-md);background:var(--glass-strong);}
 .issue-hd{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
 .issue-note{font-size:13px;color:var(--text-2);line-height:1.5;}
 .issue-meta{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-top:6px;}
 
 /* FILTER CHIPS */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
-.filter-chip{padding:5px 14px;border-radius:99px;border:1.5px solid var(--border);font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text-2);transition:all 0.15s;}
-.filter-chip:hover{border-color:var(--accent);color:var(--accent);}
-.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.filter-chip{padding:5px 14px;border-radius:99px;border:1px solid var(--glass-border);font-size:12px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.4);color:var(--text-2);transition:all 0.15s;}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,0.7);}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(109,141,240,0.35);}
 
 /* SOURCE TAGS */
 .source-tag{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:0.04em;}
@@ -267,40 +303,40 @@ html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--t
 
 /* RETAILER TABLE */
 .r-table{width:100%;border-collapse:collapse;font-size:12px;}
-.r-table th{text-align:left;padding:8px 12px;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);border-bottom:2px solid var(--border);}
-.r-table td{padding:9px 12px;border-bottom:1px solid var(--border);}
+.r-table th{text-align:left;padding:8px 12px;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-3);border-bottom:1px solid var(--glass-border);}
+.r-table td{padding:9px 12px;border-bottom:1px solid var(--glass-border-soft);}
 .r-table tr:last-child td{border-bottom:none;}
 .r-table tbody tr{cursor:pointer;transition:background 0.12s;}
-.r-table tbody tr:hover td{background:var(--surface2);}
+.r-table tbody tr:hover td{background:rgba(255,255,255,0.45);}
 .r-table .rname{font-weight:600;font-size:13px;}
 .r-table .num{text-align:right;font-family:var(--mono);font-weight:600;}
 
 /* CONFIG */
 .config-field{margin-bottom:16px;}
 .config-label{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;display:block;}
-.config-input{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;color:var(--text);background:var(--surface2);outline:none;transition:border-color 0.15s;}
+.config-input{width:100%;padding:8px 12px;border:1px solid var(--glass-border);border-radius:9px;font-family:var(--mono);font-size:13px;color:var(--text);background:rgba(255,255,255,0.5);outline:none;transition:border-color 0.15s;}
 .config-input:focus{border-color:var(--accent);}
-.btn-primary{padding:9px 22px;border-radius:8px;background:var(--accent);color:#fff;border:none;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s,box-shadow 0.15s;}
-.btn-primary:hover{background:#4a7de0;box-shadow:0 4px 12px rgba(91,141,239,0.3);}
+.btn-primary{padding:9px 22px;border-radius:9px;background:var(--accent);color:#fff;border:none;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s,box-shadow 0.15s;}
+.btn-primary:hover{background:#5a7ee0;box-shadow:0 6px 16px rgba(109,141,240,0.35);}
 
 /* MODAL */
-#modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
+#modal-overlay{position:fixed;inset:0;background:rgba(40,50,74,0.28);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px);}
 #modal-overlay.open{display:flex;}
-.modal{background:var(--surface);border-radius:14px;padding:28px;width:360px;box-shadow:var(--shadow-lg);animation:modalIn 0.2s var(--ease);}
+.modal{background:var(--glass-strong);backdrop-filter:var(--blur-lg);-webkit-backdrop-filter:var(--blur-lg);border:1px solid var(--glass-border);border-radius:20px;padding:28px;width:360px;box-shadow:var(--shadow-lg);animation:modalIn 0.2s var(--ease);}
 @keyframes modalIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:6px;}
 .modal-sub{font-size:13px;color:var(--text-3);margin-bottom:20px;}
-.modal-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:14px;margin-bottom:12px;outline:none;background:var(--surface2);transition:border-color 0.15s;}
+.modal-input{width:100%;padding:9px 12px;border:1px solid var(--glass-border);border-radius:9px;font-family:var(--sans);font-size:14px;margin-bottom:12px;outline:none;background:rgba(255,255,255,0.5);transition:border-color 0.15s;}
 .modal-input:focus{border-color:var(--accent);}
 .modal-error{color:var(--warn);font-size:12px;margin-bottom:10px;}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;}
-.btn-ghost{padding:7px 16px;border-radius:8px;background:none;border:1.5px solid var(--border);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;color:var(--text-2);transition:all 0.15s;}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-ghost{padding:7px 16px;border-radius:9px;background:rgba(255,255,255,0.4);border:1px solid var(--glass-border);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;color:var(--text-2);transition:all 0.15s;}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,0.7);}
 
 /* PAGINATION */
 .pagination{display:flex;align-items:center;gap:6px;margin-top:16px;justify-content:center;}
-.page-btn{padding:6px 11px;border:1.5px solid var(--border);border-radius:7px;background:none;font-family:var(--sans);font-size:12px;cursor:pointer;color:var(--text-2);transition:all 0.12s;min-width:34px;text-align:center;}
-.page-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.page-btn{padding:6px 11px;border:1px solid var(--glass-border);border-radius:8px;background:rgba(255,255,255,0.4);font-family:var(--sans);font-size:12px;cursor:pointer;color:var(--text-2);transition:all 0.12s;min-width:34px;text-align:center;}
+.page-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,0.7);}
 .page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 .page-btn:disabled{opacity:0.35;cursor:not-allowed;}
 
@@ -451,15 +487,6 @@ function updateDateLabel(){const el=document.getElementById('date-range-label');
 function fi(){return state.data.internal.filter(r=>inRange(r['Timestamp']));}
 function fs(){return state.data.skyu.filter(r=>inRange(r['Email Date']));}
 function fa(){return state.data.advStores.filter(r=>inRange(r['Visit Date']));}
-// Normalizes a "Recap Date" style field so that two different-but-equivalent
-// spellings of the same date (e.g. "5/11" vs "05/11/2025") are treated as the
-// same recap when joining the two Advantage tabs together.
-function normRecap(s){
-  if(!s)return'';
-  const d=parseDate(s);
-  if(d)return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-  return String(s).trim().toLowerCase();
-}
 function fsum(){
   // Filter Advantage summaries by date range using Recap Date field
   if(!state.dateFrom && !state.dateTo) return state.data.advSummary;
@@ -467,8 +494,7 @@ function fsum(){
     // Recap Date is like "5/11" or "6/11" — we try to match against visit dates
     // from the store rows for that recap, using the actual visit dates for precision.
     // If any store visit in that recap falls in range, include the summary.
-    const key=normRecap(s['Recap Date']);
-    const recapStores = state.data.advStores.filter(r=>normRecap(r['Recap Date'])===key);
+    const recapStores = state.data.advStores.filter(r=>r['Recap Date']===s['Recap Date']);
     if(recapStores.length===0) return true; // no store rows, always include summary
     return recapStores.some(r=>inRange(r['Visit Date']));
   });
@@ -546,18 +572,7 @@ const ISSUE_CATS=[
   {key:'reorder',label:'Reorder Requests',patterns:['reorder','order placed','placing an order'],color:'var(--accent)'},
   {key:'other',label:'Other Findings',patterns:['no pricing','missing','price tag','not authorized','shelving'],color:'var(--skyu)'}
 ];
-// Notes that merely *mention* an issue word while actually saying there is NO
-// problem (e.g. "no inventory issues", "nothing missing") should not be
-// flagged. This is a lightweight guard, not full NLP — it catches the common
-// negation phrasing seen in these field notes.
-const ISSUE_NEGATIONS=['no issues','no problems','nothing missing','all good','fully stocked','no concerns','n/a'];
-function catIssue(note){
-  if(!note)return null;
-  const lc=note.toLowerCase();
-  if(ISSUE_NEGATIONS.some(p=>lc.includes(p)))return null;
-  for(const c of ISSUE_CATS){if(c.patterns.some(p=>lc.includes(p)))return c.key;}
-  return null;
-}
+function catIssue(note){if(!note)return null;const lc=note.toLowerCase();for(const c of ISSUE_CATS){if(c.patterns.some(p=>lc.includes(p)))return c.key;}return null;}
 function isFlagged(note){return catIssue(note)!==null;}
 
 function getAllIssues(){
@@ -624,6 +639,27 @@ function posTag(type){
   return'<span class="pos-tag pos-tag-'+cls+'" style="color:'+color+'">'+( icons[type]||'')+'<span>'+esc(type)+'</span></span>';
 }
 
+// PHOTO GRID — small square thumbnails, capped with a "+N" overflow tile
+function renderPhotoGrid(photos,cap){
+  if(!photos||!photos.length)return'';
+  cap=cap||6;
+  const shown=photos.slice(0,cap);
+  const overflow=photos.length-shown.length;
+  let html='<div class="photo-grid">';
+  html+=shown.map(p=>'<img class="photo-thumb" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('');
+  if(overflow>0){
+    const nextUrl=photos[cap];
+    html+='<div class="photo-more" onclick="event.stopPropagation();openLightbox(\''+esc(nextUrl)+'\')">+'+overflow+'</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function toggleCard(id){
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('expanded');
+}
+
 // LIGHTBOX
 function openLightbox(url){
   const el=document.getElementById('lightbox');
@@ -657,6 +693,7 @@ function render(){
   else if(p==='advantage-recap')div.innerHTML=renderAdvRecap(params);
   else if(p==='advantage-chain')div.innerHTML=renderAdvChain(params);
   else if(p==='state-detail')div.innerHTML=renderStateDetail(params);
+  else if(p==='retailer-detail')div.innerHTML=renderRetailerDetail(params);
   else if(p==='chain-detail')div.innerHTML=renderChainDetail(params);
   else if(p==='config')div.innerHTML=renderConfig();
   else div.innerHTML='<div class="empty"><div class="empty-text">Page not found.</div></div>';
@@ -738,36 +775,20 @@ function renderDash(){
 function renderPOSDetail(params){
   const type=params.type||'Neck Tag';
   const color=POS_COLORS[type]||'var(--accent)';
-  const intRows=fi(),advSum=fsum();
+  const intRows=fi(),advSum=fsum(),advRows=fa();
   const intMatches=intRows.filter(r=>getPOS(r).includes(type));
   const isNT=type==='Neck Tag',isWB=type==='Wobbler';
-
-  // Advantage placement totals for this type come from the campaign-summary
-  // tab, which is the only place that actually records how many of this POS
-  // type were placed. The per-store Advantage tab does NOT indicate which
-  // specific POS type went into which specific store, so we must not treat
-  // "every store visited during a campaign that placed some neck tags" as a
-  // Neck Tag "record" — that would inflate/misrepresent the count. Instead,
-  // Advantage is represented here at the recap (campaign) level.
   let advTotal=0;
-  const advRecapCards=[];
-  if(isNT||isWB){
-    advSum.forEach(s=>{
-      const nonHT=isNT?(parseInt(s['Neck Tags Placed (Non-HT)'])||0):(parseInt(s['Wobblers Placed (Non-HT)'])||0);
-      const ht=isNT?(parseInt(s['Neck Tags Placed (HT)'])||0):0; // Wobblers have no HT column
-      const placed=nonHT+ht;
-      advTotal+=placed;
-      if(placed>0){
-        advRecapCards.push({recap:s['Recap Date']||'—',placed,visited:parseInt(s['Stores Visited'])||0,target:parseInt(s['Target Goal'])||0,driveLink:s['Drive File Link']||''});
-      }
-    });
-  }
-  const total=intMatches.length+advTotal; // "Total Placed" — a placement count, not a record count
-  const hasAdv=advRecapCards.length>0;
+  if(isNT)advSum.forEach(s=>{advTotal+=(parseInt(s['Neck Tags Placed (Non-HT)'])||0)+(parseInt(s['Neck Tags Placed (HT)'])||0);});
+  if(isWB)advSum.forEach(s=>{advTotal+=(parseInt(s['Wobblers Placed (Non-HT)'])||0)+(parseInt(s['Wobblers Placed (HT)'])||0);});
+  const total=intMatches.length+(isNT||isWB?advTotal:0);
+  const hasAdv=(isNT||isWB)&&advSum.length>0;
 
-  // Combined records for the "All Records" tab. Internal rows are genuine
-  // per-store placement records. Advantage is shown as per-campaign summary
-  // cards (accurate to the data we actually have), not per-store rows.
+  // Advantage store records from recaps that include this POS type
+  const advRecapDates=hasAdv?advSum.map(s=>s['Recap Date']):[];
+  const advStoreRecords=hasAdv?advRows.filter(r=>advRecapDates.includes(r['Recap Date'])):[];
+
+  // Combined records for All Records tab
   const combined=[];
   intMatches.forEach(r=>{
     const k=Object.keys(r).find(k=>k.includes('Next steps'));
@@ -775,9 +796,11 @@ function renderPOSDetail(params){
     const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];
     combined.push({source:'internal',title:cleanLoc(r),sub:getRetailer(r),date:r['Timestamp'],note,photos,tags:getPOS(r),flagged:isFlagged(note),isNew:(r['New or Existing']||'').toLowerCase()==='new',raw:r});
   });
-  advRecapCards.forEach(c=>{
-    combined.push({source:'advantage',title:'Campaign recap '+c.recap,sub:c.visited+' / '+c.target+' stores visited',date:'',note:c.placed+' '+type+(c.placed!==1?'s':'')+' placed this campaign',photos:[],tags:[],flagged:false,isNew:false,isRecap:true,recap:c.recap,driveLink:c.driveLink});
+  advStoreRecords.forEach(r=>{
+    const photos=advPhotos(r['Photos']||'');
+    combined.push({source:'advantage',title:(r['Chain']||'')+' #'+(r['Store #']||''),sub:(r['City']||'')+(r['State']?', '+r['State']:''),date:r['Visit Date'],note:'Recap '+r['Recap Date'],photos,tags:[],flagged:false,isNew:false,raw:r});
   });
+  combined.sort((a,b)=>(parseDate(b.date)||0)-(parseDate(a.date)||0));
 
   // Source filter state
   const sfk='pos_srcf_'+type.replace(/\s/g,'');
@@ -785,11 +808,10 @@ function renderPOSDetail(params){
   const srcFilter=state[sfk];
   const filtered=srcFilter==='all'?combined:combined.filter(r=>r.source===srcFilter);
 
-  // By Retailer — internal only. Advantage placement totals are reported at
-  // the campaign level in this data set, not broken out per retailer chain,
-  // so we don't fabricate a chain-level breakdown for them here.
+  // By Retailer — combined from all sources
   const retMap={};
-  intMatches.forEach(r=>{const n=getRetailer(r);if(!retMap[n])retMap[n]={count:0};retMap[n].count++;});
+  intMatches.forEach(r=>{const n=getRetailer(r);if(!retMap[n])retMap[n]={count:0,posCount:0,source:'internal'};retMap[n].count++;retMap[n].posCount++;});
+  if(hasAdv){advStoreRecords.forEach(r=>{const n=r['Chain']||'Unknown';if(!retMap[n])retMap[n]={count:0,posCount:0,source:'advantage'};retMap[n].count++;});}
   const retList=Object.entries(retMap).sort((a,b)=>b[1].count-a[1].count);
 
   // Pagination for All Records
@@ -803,16 +825,15 @@ function renderPOSDetail(params){
   // Build header
   var html='<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>'
     +'<div class="pos-drill-hd"><div class="pos-drill-icon" style="background:'+color+'1a;color:'+color+'">'+(icons[type]||'')+'</div>'
-    +'<div><div class="pos-drill-title">'+esc(type)+'</div><div class="text-muted text-sm" style="margin-top:2px">Total placed across all sources</div></div>'
+    +'<div><div class="pos-drill-title">'+esc(type)+'</div><div class="text-muted text-sm" style="margin-top:2px">Placed across all sources</div></div>'
     +'<div class="pos-drill-total" style="color:'+color+'">'+total+'</div></div></div>';
 
   // Source filter chips
   html+='<div class="filter-bar" style="margin-bottom:16px">';
   html+='<div class="filter-chip '+(srcFilter==='all'?'active':'')+'" onclick="state[\''+sfk+'\']=\'all\';state[\''+rpk+'\']=1;render()">All ('+combined.length+')</div>';
-  html+='<div class="filter-chip '+(srcFilter==='internal'?'active':'')+'" onclick="state[\''+sfk+'\']=\'internal\';state[\''+rpk+'\']=1;render()">Internal Team ('+intMatches.length+')</div>';
-  if(hasAdv)html+='<div class="filter-chip '+(srcFilter==='advantage'?'active':'')+'" onclick="state[\''+sfk+'\']=\'advantage\';state[\''+rpk+'\']=1;render()">Advantage campaigns ('+advRecapCards.length+')</div>';
+  html+='<div class="filter-chip '+(srcFilter==='internal'?'active':'')+'" onclick="state[\''+sfk+'\']=\'internal\';state[\''+rpk+'\']=1;render()">Internal Team ('+combined.filter(r=>r.source==='internal').length+')</div>';
+  if(hasAdv)html+='<div class="filter-chip '+(srcFilter==='advantage'?'active':'')+'" onclick="state[\''+sfk+'\']=\'advantage\';state[\''+rpk+'\']=1;render()">Advantage ('+advStoreRecords.length+')</div>';
   html+='</div>';
-  if(hasAdv)html+='<div class="text-sm text-muted" style="margin:-8px 0 16px">Advantage figures are reported per campaign, not per store — the campaign cards below show total placed for that recap, not individual store placements.</div>';
 
   // Tabs
   html+='<div id="pos-tabs"><div class="tab-bar">'
@@ -826,18 +847,9 @@ function renderPOSDetail(params){
     html+='<div class="empty"><div class="empty-text">No records for '+esc(type)+' in this range.</div></div>';
   }else{
     rpaged.forEach(r=>{
-      if(r.isRecap){
-        html+='<div class="visit-card" style="cursor:pointer" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(r.recap).replace(/"/g,'&quot;')+'})">'
-          +'<div class="visit-hd"><span class="source-tag source-tag-advantage">ADV</span><span style="font-weight:600;font-size:14px">'+esc(r.title)+'</span></div>'
-          +'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r.sub)+'</div>'
-          +'<div class="visit-note">'+esc(r.note)+'</div>'
-          +(r.driveLink?'<div style="margin-top:8px"><a href="'+esc(r.driveLink)+'" target="_blank" onclick="event.stopPropagation()" class="link">View full report →</a></div>':'')
-          +'</div>';
-        return;
-      }
-      const srcTag='<span class="source-tag source-tag-internal">INT</span>';
-      html+='<div class="visit-card '+(r.flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(r.title).replace(/"/g,'&quot;')+'})">'
-        +'<div class="visit-hd"><span class="visit-date">'+fmtShort(r.date)+'</span>'+srcTag
+      const srcTag=r.source==='internal'?'<span class="source-tag source-tag-internal">INT</span>':'<span class="source-tag source-tag-advantage">ADV</span>';
+      html+='<div class="visit-card '+(r.flagged?'flagged':'')+'" style="cursor:pointer" onclick="'+(r.source==='internal'?'nav(\'internal-detail\',{loc:'+JSON.stringify(r.title).replace(/"/g,'&quot;')+'})':'nav(\'advantage-chain\',{loc:'+JSON.stringify(r.raw['Chain']||'').replace(/"/g,'&quot;')+'})' )+'">'
+        +'<div class="visit-hd" style="margin-bottom:10px"><span class="visit-date">'+fmtShort(r.date)+'</span>'+srcTag
         +(r.isNew?'<span class="badge badge-new">New</span>':'')
         +(r.flagged?'<span class="badge badge-flagged">Flagged</span>':'')
         +(r.tags.length?r.tags.map(t=>posTag(t)).join(''):'')
@@ -845,7 +857,7 @@ function renderPOSDetail(params){
         +'<div style="font-weight:600;font-size:14px">'+esc(r.title)+'</div>'
         +(r.sub?'<div class="text-sm text-muted" style="margin-top:2px">'+esc(r.sub)+'</div>':'')
         +(r.note?'<div class="visit-note">'+esc(r.note.substring(0,200))+(r.note.length>200?'\u2026':'')+'</div>':'')
-        +(r.photos.length?'<div class="visit-photos">'+r.photos.map(p=>'<img class="visit-photo" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')
+        +renderPhotoGrid(r.photos)
         +'</div>';
     });
     // Pagination
@@ -860,15 +872,14 @@ function renderPOSDetail(params){
   html+='</div>';
 
   // BY RETAILER TAB
-  html+='<div class="tab-pane" data-tab="retailer">';
-  if(hasAdv)html+='<div class="text-sm text-muted" style="margin-bottom:12px">Showing Internal Team retailers only — Advantage does not report placements by retailer chain.</div>';
-  html+='<div class="list-card">';
+  html+='<div class="tab-pane" data-tab="retailer"><div class="list-card">';
   retList.forEach(([name,d])=>{
-    html+='<div class="list-item card-lift" style="cursor:pointer" onclick="nav(\'chain-detail\',{chain:'+JSON.stringify(name).replace(/"/g,'&quot;')+'})">'
+    const navTarget=d.source==='advantage'?"nav(\'advantage-chain\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})":"nav(\'chain-detail\',{chain:"+JSON.stringify(name).replace(/"/g,'&quot;')+"})";
+    html+='<div class="list-item card-lift" style="cursor:pointer" onclick="'+navTarget+'">'
       +'<div class="list-item-main"><div class="list-item-title">'+esc(name)+'</div>'
       +'<div class="list-item-sub">'+d.count+' record'+(d.count!==1?'s':'')+'</div></div>'
       +'<div class="list-item-right" style="display:flex;align-items:center;gap:8px">'
-      +'<span class="source-tag source-tag-internal">INT</span>'
+      +'<span class="source-tag source-tag-'+d.source+'">'+(d.source==='internal'?'INT':'ADV')+'</span>'
       +'<svg viewBox="0 0 12 12" fill="none" stroke="var(--text-3)" stroke-width="1.5" width="12" height="12"><path d="M4 2L8 6L4 10"/></svg>'
       +'</div></div>';
   });
@@ -903,7 +914,7 @@ function renderCoverage(){
 <div class="section-gap">
   <div class="section-hd"><div class="section-title">State Breakdown</div><div class="section-sub">Advantage store visits</div></div>
   <div class="list-card" style="padding:14px 16px">
-    ${ts.length?ts.map(([st,c])=>'<div class="bar-list-item" onclick="nav(\'state-detail\',{state:'+JSON.stringify(st).replace(/"/g,'&quot;')+'})"><span class="bar-list-name">'+esc(st)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/ms*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No state data.</div></div>'}
+    ${ts.length?ts.map(([st,c])=>'<div class="bar-list-item" onclick="nav(\'state-detail\',{state:\''+esc(st)+'\'})"><span class="bar-list-name">'+esc(st)+'</span><div class="bar-list-bar"><div class="bar-list-fill" style="width:'+Math.round(c/ms*100)+'%"></div></div><span class="bar-list-count">'+c+'</span></div>').join(''):'<div class="empty"><div class="empty-text">No state data.</div></div>'}
   </div>
 </div>`;
 }
@@ -1017,7 +1028,7 @@ function renderInternalDetail(params){
   <div class="detail-title">${esc(loc)}</div>
   <div class="detail-sub">${itot} visit${itot!==1?'s':''} · Internal Team</div>
 </div>
-${ipaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
+${ipaged.map((r,idx)=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];const cid='ivc'+ipg+'_'+idx;return'<div class="visit-card '+(flagged?'flagged':'')+'" id="'+cid+'"><div class="visit-hd" onclick="toggleCard(\''+cid+'\')"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+(r['Account serviced']?'<span class="text-sm text-muted">'+esc(r['Account serviced'])+'</span>':'')+(photos.length?'<span class="photo-count-badge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><circle cx="8" cy="8" r="2.2"/></svg>'+photos.length+'</span>':'')+'<svg class="visit-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 4.5L6 8L9.5 4.5"/></svg></div><div class="visit-body">'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+'<div class="visit-meta">'+(r['How many SKUs are currently active in this account']?'<div><strong>'+esc(r['How many SKUs are currently active in this account'])+'</strong> SKUs active</div>':'')+(r['Whether you sold in any new PODs']?'<div>New PODs: <strong>'+esc(r['Whether you sold in any new PODs'])+'</strong></div>':'')+'</div>'+renderPhotoGrid(photos)+'</div></div>';}).join('')}
 ${ipag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':''}`;
 }
@@ -1062,7 +1073,7 @@ function renderSkyuDetail(params){
   <div class="detail-title">${esc(city)}</div>
   <div class="detail-sub">${tot} Circle K task${tot!==1?'s':''}</div>
 </div>
-${paged.map(r=>{const note=r['Comments / Findings']||'';const flagged=isFlagged(note);const photos=advPhotos(r['Photos']||'');return'<div class="visit-card '+(flagged?'flagged':'')+'"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Email Date'])+'</span><span class="badge '+(flagged?'badge-flagged':'badge-done')+'">'+(flagged?'Flagged':'Complete')+'</span></div>'+(r['Address']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Address'])+'</div>':'')+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'<div class="visit-meta">'+(r['Task ID']?'<div class="text-mono text-sm text-muted">Task '+esc(r['Task ID'])+'</div>':'')+(r['Portal Link']?'<div><a href="'+esc(r['Portal Link'])+'" target="_blank" class="link">View in Portal \u2192</a></div>':'')+'</div></div>';}).join('')}
+${paged.map((r,idx)=>{const note=r['Comments / Findings']||'';const flagged=isFlagged(note);const photos=advPhotos(r['Photos']||'');const cid='svc'+pg+'_'+idx;return'<div class="visit-card '+(flagged?'flagged':'')+'" id="'+cid+'"><div class="visit-hd" onclick="toggleCard(\''+cid+'\')"><span class="visit-date">'+fmtShort(r['Email Date'])+'</span><span class="badge '+(flagged?'badge-flagged':'badge-done')+'">'+(flagged?'Flagged':'Complete')+'</span>'+(r['Address']?'<span class="text-sm text-muted">'+esc(r['Address'])+'</span>':'')+(photos.length?'<span class="photo-count-badge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><circle cx="8" cy="8" r="2.2"/></svg>'+photos.length+'</span>':'')+'<svg class="visit-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 4.5L6 8L9.5 4.5"/></svg></div><div class="visit-body">'+(note?'<div class="visit-note">'+esc(note)+'</div>':'')+renderPhotoGrid(photos)+'<div class="visit-meta">'+(r['Task ID']?'<div class="text-mono text-sm text-muted">Task '+esc(r['Task ID'])+'</div>':'')+(r['Portal Link']?'<div><a href="'+esc(r['Portal Link'])+'" target="_blank" class="link">View in Portal \u2192</a></div>':'')+'</div></div></div>';}).join('')}
 ${pag}
 ${!rows.length?'<div class="empty"><div class="empty-text">No tasks for this location.</div></div>':''}`;
 }
@@ -1076,7 +1087,7 @@ function renderAdvantage(){
 <div class="grid-2" style="gap:24px">
   <div>
     <div class="section-hd"><div class="section-title">Campaign Recaps</div></div>
-    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>normRecap(r['Recap Date'])===normRecap(s['Recap Date'])).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer" onclick="event.stopPropagation();nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'});">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
+    ${summaries.length?summaries.map(s=>{const v=parseInt(s['Stores Visited'])||0,t=parseInt(s['Target Goal'])||1,pct=Math.min(Math.round(v/t*100),100),nt=parseInt(s['Neck Tags Placed (Non-HT)'])||0,wb=parseInt(s['Wobblers Placed (Non-HT)'])||0,ntHT=parseInt(s['Neck Tags Placed (HT)'])||0,cnt=rows.filter(r=>r['Recap Date']===s['Recap Date']).length;return'<div class="campaign-card" onclick="nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'})"><div class="cc-hd"><span class="cc-date">Recap '+esc(s['Recap Date']||'—')+'</span><span class="cc-pct">'+pct+'%</span></div><div class="cc-meta"><span><strong>'+v+'</strong> / '+t+' stores</span><span>'+cnt+' logged</span></div><div class="cc-pos-grid"><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (non-HT)</span><span class="cc-pos-val">'+nt+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-wobbler)"></span><span class="cc-pos-label">Wobblers (non-HT)</span><span class="cc-pos-val">'+wb+'</span></div><div class="cc-pos-item"><span class="cc-pos-dot" style="background:var(--pos-necktag)"></span><span class="cc-pos-label">Neck Tags (HT)</span><span class="cc-pos-val">'+ntHT+'</span></div></div><div class="prog-wrap" style="margin-top:10px"><div class="prog-fill" style="width:'+pct+'%"></div></div><div style="margin-top:8px;display:flex;gap:12px">'+(s['Drive File Link']?'<a href="'+esc(s['Drive File Link'])+'" target="_blank" onclick="event.stopPropagation()" class="link">View report →</a>':'')+'<span class="link" style="cursor:pointer" onclick="event.stopPropagation();nav(\'advantage-recap\',{recap:'+JSON.stringify(s['Recap Date']).replace(/"/g,'&quot;')+'});">View stores →</span></div></div>';}).join(''):'<div class="empty"><div class="empty-text">No campaign data.</div></div>'}
   </div>
   <div>
     <div class="section-hd"><div class="section-title">Retailers</div></div>
@@ -1089,9 +1100,8 @@ function renderAdvantage(){
 
 function renderAdvRecap(params){
   const recap=params&&params.recap?params.recap:'';
-  const key=normRecap(recap);
-  const rows=fa().filter(r=>normRecap(r['Recap Date'])===key);
-  const summary=state.data.advSummary.find(s=>normRecap(s['Recap Date'])===key);
+  const rows=fa().filter(r=>r['Recap Date']===recap);
+  const summary=state.data.advSummary.find(s=>s['Recap Date']===recap);
   const PS=8,pk='advrp'+recap;if(!state[pk])state[pk]=1;const pg=state[pk],tot=rows.length,tp=Math.ceil(tot/PS),paged=rows.slice((pg-1)*PS,pg*PS);
   const pag=tp>1?'<div class="pagination"><button class="page-btn" '+(pg===1?'disabled':'')+' onclick="state[\''+pk+'\']='+( pg-1)+';render()">Prev</button>'+Array.from({length:tp},(_,i)=>'<button class="page-btn '+(i+1===pg?'active':'')+'" onclick="state[\''+pk+'\']='+( i+1)+';render()">'+(i+1)+'</button>').join('')+'<button class="page-btn" '+(pg===tp?'disabled':'')+' onclick="state[\''+pk+'\']='+( pg+1)+';render()">Next</button></div>':'';
   return`
@@ -1102,7 +1112,7 @@ function renderAdvRecap(params){
 </div>
 ${summary?'<div class="card" style="margin-bottom:20px"><div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px"><span>Target: <strong>'+( summary['Target Goal']||'—')+'</strong></span><span>Visited: <strong>'+(summary['Stores Visited']||'—')+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (non-HT): <strong>'+(summary['Neck Tags Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-wobbler)">Wobblers: <strong>'+(summary['Wobblers Placed (Non-HT)']||0)+'</strong></span><span style="color:var(--pos-necktag)">Neck Tags (HT): <strong>'+(summary['Neck Tags Placed (HT)']||0)+'</strong></span>'+(summary['Drive File Link']?'<a href="'+esc(summary['Drive File Link'])+'" target="_blank" class="link">View full report →</a>':'')+'</div></div>':''}
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'<div style="font-size:12px;color:var(--text-3);font-style:italic">No photos</div>')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?renderPhotoGrid(photos):'<div style="font-size:12px;color:var(--text-3);font-style:italic">No photos</div>')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores found for this recap.</div></div>':''}`;
 }
@@ -1119,7 +1129,7 @@ function renderAdvChain(params){
   <div class="detail-sub">${tot} store${tot!==1?'s':''} visited</div>
 </div>
 <div class="grid-2">
-  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'</div>';}).join('')}
+  ${paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer"><div style="font-weight:700;font-size:14px">'+esc(chain)+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['State']?', '+esc(r['State']):'')+(r['Visit Date']?' · '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?renderPhotoGrid(photos):'')+'</div>';}).join('')}
 </div>
 ${pag}${!rows.length?'<div class="empty"><div class="empty-text">No stores for this chain.</div></div>':''}`;
 }
@@ -1131,7 +1141,7 @@ function renderStateDetail(params){
   const pg=state[spk],tot=rows.length,tp=Math.ceil(tot/SPS),paged=rows.slice((pg-1)*SPS,pg*SPS);
   const pag=tp>1?'<div class="pagination">'+(pg>1?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+pg+' of '+tp+' \u00b7 '+tot+' stores</span>'+(pg<tp?'<button class="page-btn" onclick="state[\''+spk+'\']='+( pg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
   const chainSummary=chainList.length?'<div class="list-card" style="margin-bottom:20px">'+chainList.map(([c,n])=>'<div class="list-item" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(c).replace(/"/g,'&quot;')+'})"><div class="list-item-main"><div class="list-item-title">'+esc(c)+'</div></div><div class="list-item-right"><div class="list-count">'+n+'</div></div></div>').join('')+'</div>':'';
-  const storeCards=paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?'<div class="store-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+esc(p)+'" loading="lazy" onerror="this.style.display=\'none\'" onclick="event.stopPropagation();openLightbox(\''+esc(p)+'\')">').join('')+'</div>':'')+'</div>';}).join('');
+  const storeCards=paged.map(r=>{const photos=advPhotos(r['Photos']||'');return'<div class="card" style="padding:16px;cursor:pointer" onclick="nav(\'advantage-chain\',{chain:'+JSON.stringify(r['Chain']||'').replace(/"/g,'&quot;')+'})"><div style="font-weight:700;font-size:14px">'+esc(r['Chain']||'')+' '+(r['Store #']?'#'+esc(r['Store #']):'')+'</div><div class="text-sm text-muted" style="margin:3px 0 10px">'+esc(r['City']||'')+(r['Visit Date']?' \u00b7 '+fmtShort(r['Visit Date']):'')+'</div>'+(photos.length?renderPhotoGrid(photos):'')+'</div>';}).join('');
   return'<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(st)+' Stores</div><div class="detail-sub">'+tot+' store'+(tot!==1?'s':'')+' visited (Advantage)</div></div><div class="section-hd"><div class="section-title">Retailers in '+esc(st)+'</div></div>'+chainSummary+'<div class="section-hd"><div class="section-title">All Stores</div></div><div class="grid-2">'+storeCards+'</div>'+pag+(!rows.length?'<div class="empty"><div class="empty-text">No stores in this state.</div></div>':'');
 }
 
@@ -1146,10 +1156,34 @@ function renderChainDetail(params){
   const cpg=state[cpk],ctot=rows.length,ctp=Math.ceil(ctot/CPS),cpaged=rows.slice((cpg-1)*CPS,cpg*CPS);
   const cpag=ctp>1?'<div class="pagination">'+(cpg>1?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">Page '+cpg+' of '+ctp+' \u00b7 '+ctot+' total</span>'+(cpg<ctp?'<button class="page-btn" onclick="state[\''+cpk+'\']='+( cpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
 
-  const cards=cpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})"><div class="visit-hd"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div>'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+(photos.length?'<div class="visit-photos">'+photos.map(p=>'<img class="visit-photo-lg" src="'+p+'" loading="lazy" onerror="this.style.display=\'none\';" onclick="event.stopPropagation();openLightbox(\''+p+'\')">').join('')+'</div>':'')+'</div>';}).join('');
+  const cards=cpaged.map((r,idx)=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];const cid='ccvc'+cpg+'_'+idx;return'<div class="visit-card '+(flagged?'flagged':'')+'" id="'+cid+'"><div class="visit-hd" onclick="toggleCard(\''+cid+'\')"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(cleanLoc(r))+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+(photos.length?'<span class="photo-count-badge"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5"/><circle cx="8" cy="8" r="2.2"/></svg>'+photos.length+'</span>':'')+'<svg class="visit-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 4.5L6 8L9.5 4.5"/></svg></div><div class="visit-body">'+(tags.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>':'')+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+renderPhotoGrid(photos)+'<span class="visit-open-link" onclick="event.stopPropagation();nav(\'internal-detail\',{loc:'+JSON.stringify(cleanLoc(r)).replace(/"/g,'&quot;')+'})">Open full location \u2192</span></div></div>';}).join('');
 
   return '<div class="detail-hd"><button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button><div class="detail-title">'+esc(chain)+'</div><div class="detail-sub">'+ctot+' visit'+(ctot!==1?'s':'')+' \u00b7 Internal Team</div></div>'+cards+cpag+(!rows.length?'<div class="empty"><div class="empty-text">No visits found.</div></div>':'');
 }
+
+// RETAILER DETAIL — all visits for a retailer with a specific POS type
+function renderRetailerDetail(params){
+  const retailer=params&&params.retailer?params.retailer:'';
+  const type=params&&params.type?params.type:'';
+  const color=POS_COLORS[type]||'var(--accent)';
+  const rows=fi().filter(r=>getRetailer(r)===retailer&&getPOS(r).includes(type));
+  rows.sort((a,b)=>(parseDate(b['Timestamp'])||0)-(parseDate(a['Timestamp'])||0));
+  const RPS=10,rpk='rdpg_'+retailer.replace(/[^a-z0-9]/gi,'');
+  if(!state[rpk])state[rpk]=1;
+  const rpg=state[rpk],rtot=rows.length,rtp=Math.ceil(rtot/RPS),rpaged=rows.slice((rpg-1)*RPS,rpg*RPS);
+  const rpag=rtp>1?'<div class="pagination">'+(rpg>1?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg-1)+';render()">\u2190 Prev</button>':'')+' <span style="font-size:12px;color:var(--text-3);padding:0 8px">'+rpg+' of '+rtp+' \u00b7 '+rtot+' total</span>'+(rpg<rtp?'<button class="page-btn" onclick="state[\''+rpk+'\']='+( rpg+1)+';render()">Next \u2192</button>':'')+'</div>':'';
+  const nk=rows.length?Object.keys(rows[0]).find(k=>k.includes('Next steps')):null;
+  return`
+<div class="detail-hd">
+  <button class="back-btn" onclick="navBack()"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2L4 7L9 12"/></svg>Back</button>
+  <div class="detail-title">${esc(retailer)}</div>
+  <div class="detail-sub">${rtot} visit${rtot!==1?'s':''} with ${esc(type)} \u00b7 Internal Team</div>
+</div>
+${rpaged.map(r=>{const note=nk?r[nk]:'';const tags=getPOS(r);const flagged=isFlagged(note);const photos=[...dLinks(r['If Ketone-IQ was placed, add a photo']||''),...dLinks(r['Before and After photos']||'')];return'<div class="visit-card '+(flagged?'flagged':'')+'" style="cursor:pointer" onclick="nav(\'internal-detail\',{loc:\''+esc(r['Store Location (City)']||'Unlabeled')+'\'})"><div class="visit-hd" style="margin-bottom:10px"><span class="visit-date">'+fmtShort(r['Timestamp'])+'</span><span class="badge '+((r['New or Existing']||'').toLowerCase()==='new'?'badge-new':'badge-existing')+'">'+esc(r['New or Existing']||'Existing')+'</span>'+(flagged?'<span class="badge badge-flagged">Flagged</span>':'')+'</div><div style="font-weight:600;font-size:13px">'+esc(r['Store Location (City)']||'Unlabeled')+'</div>'+(r['Account serviced']?'<div class="text-sm text-muted" style="margin-bottom:6px">'+esc(r['Account serviced'])+'</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+tags.map(t=>posTag(t)).join('')+'</div>'+(note?'<div class="visit-note">'+esc(note.substring(0,200))+(note.length>200?'\u2026':'')+'</div>':'')+renderPhotoGrid(photos)+'</div>';}).join('')}
+${rpag}
+${!rows.length?'<div class="empty"><div class="empty-text">No visits found for this retailer and POS type.</div></div>':''}`;
+}
+
 
 function renderConfig(){
   return`
