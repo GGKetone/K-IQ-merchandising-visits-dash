@@ -1474,6 +1474,23 @@ async function init(){
     updateActive();
   }
 }
+/* ===== PHOTO SOURCE PATCH =====
+   Internal visit photos now come from "Before and After photos".
+   Visits without one fall back to the old single-photo column. */
+dLinks = function(str){
+  if(!str) return [];
+  return str.split(/[\s,|]+/).map(s=>s.trim()).filter(Boolean).map(driveThumb).filter(Boolean);
+};
+const _loadAllData_orig = loadAllData;
+loadAllData = async function(){
+  await _loadAllData_orig();
+  state.data.internal.forEach(r=>{
+    if((r['Before and After photos']||'').trim()){
+      r['If Ketone-IQ was placed, add a photo'] = '';
+    }
+  });
+};
+/* ===== END PATCH ===== */
 init();
 </script>
 </body>
